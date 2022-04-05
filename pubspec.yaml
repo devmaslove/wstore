@@ -1,6 +1,7 @@
 name: reactive_store
 description: A state management library that helps implement the Scoped design pattern.
 version: 0.0.1
+repository: https://github.com/dmitrymaslovhome/reactive_store
 
 environment:
   sdk: ">=2.16.2 <3.0.0"
