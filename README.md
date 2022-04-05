@@ -1,39 +1,156 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# RStore
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages). 
+RStore - это библиотека для state manage во Flutter.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages). 
--->
+## Idea
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+Основная идея в том чтобы разделить представление от логики
+по типу того как это делается во Vue.js: шаблон занимается отображением,
+а в слое data находятся данные (которые вставляются в шаблон)
+и методы/функции (которые дергает шаблон по событиям).
+
+Хочется также просто - объявляем переменную, пихаем её в нужный
+виджет, при изменении переменной виджет сам меняется.
+
+Ну и перестраиваться должны только те виджеты в которых поменялись
+связанные данные.
+
+В поисках решения я натолкнулся на [consumer](https://pub.dev/packages/consumer) -
+то что надо! Только допилить напильником :)
+
+## Concept
+
+Создаем обычный класс с данными - много разных переменных
+(наследник `RStore`).
+
+Добавляем отображение данных в дерево виджетов с помощью билдера
+(например `RStoreBuilder`).
+
+В билдере прописываем за изменениями каких переменных он будет следить
+(список `watch`).
+
+При изменении данных вызываем у класса `setStore` для уведомления билдеров
+что данные изменились.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- Можно использовать только StatelessWidget для полноценного приложения
+- Можно использовать простые типы данных без всяких обёрток (не нужно на каждую переменную создавать обертку)
+- Используем RStoreBuilder - как принято стандартно во Flutter без скрытой магии строим виджеты через билдеры
+- Встроенный RStoreProvider чтобы передать RStore вниз по дереву
+- Маленький и понятный интерфейс - setStore, Builder и Provider
 
-## Getting started
+## Install
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Change `pubspec.yaml` (and run an implicit pub get):
+
+```yaml
+dependencies:
+  reactive_store:
+    git:
+      url: https://github.com/dmitrymaslovhome/reactive_store
+```
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+Создаем класс с данными:
 
 ```dart
-const like = 'sample';
+class _MyAppStore extends RStore {
+  int counter = 0;
+
+  void incrementCounter() {
+    setStore(() {
+      counter++;
+    });
+  }
+}
+
+final store = _MyAppStore();
+```
+
+Билдим данные в дерево виджетов:
+
+```dart
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Center(
+      child: RStoreBuilder(
+        store: store,
+        watch: () => [store.counter],
+        builder: (context) => Text(
+          '${store.counter}',
+          style: Theme.of(context).textTheme.headline4,
+        ),
+      ),
+    ),
+    floatingActionButton: FloatingActionButton(
+      onPressed: store.incrementCounter,
+      child: const Icon(Icons.add),
+    ),
+  );
+}
 ```
 
 ## Additional information
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+Для того чтобы подписаться только на одну переменную можно использовать
+шаблон `RStoreValueBuilder`:
+
+```dart
+RStoreValueBuilder<int>(
+  store: store,
+  watch: () => store.counter,
+  builder: (context, counter) {
+    return Text(
+      '$counter',
+      style: Theme.of(context).textTheme.headline4,
+    );
+  },
+),
+```
+
+Для пробрасывания хранилища по дереву виджетов можно использовать
+`RStoreProvider`:
+
+```dart
+@override
+Widget build(BuildContext context) {
+  return MaterialApp(
+    home: RStoreProvider<_MyAppStore>(
+      store: _MyAppStore(),
+      child: const _MyAppContent(),
+    ),
+  );
+}
+
+
+@override
+Widget build(BuildContext context) {
+  final store = RStoreProvider.of<_MyAppStore>(context);
+  ...
+```
+
+`RStoreProvider` позволяет использовать контекстные билдеры которые
+сами находят хранилище:
+
+```dart
+RStoreContextValueBuilder<_MyAppStore, int>(
+  watch: (store) => store.counter,
+  builder: (context, counter) {
+    return Text(
+      '$counter',
+      style: Theme.of(context).textTheme.headline4,
+    );
+  },
+)
+
+RStoreContextBuilder<_MyAppStore>(
+  watch: (store) => [store.counter],
+  builder: (context, store) => Text(
+    '${store.counter}',
+    style: Theme.of(context).textTheme.headline4,
+  ),
+)
+```
