@@ -25,6 +25,8 @@ class RStore {
   /// Notifying watchers that the store has been updated.
   void setStore([Function()? fn]) {
     fn?.call();
+    // TODO: add param - tags : ['Text', 'Text2'] (для обновления конкретных билдеров)
+    // TODO: add param - debounceDelay : 400
     // notify watchers
     _controller.add(this);
   }
@@ -33,6 +35,9 @@ class RStore {
   @mustCallSuper
   void dispose() {}
 }
+
+// TODO: Сделать RStoreTagBuilder - чтобы обновлять не по watch а по tag
+// это позволит вручную обновлять нужные виджеты
 
 class RStoreBuilder extends StatelessWidget {
   final Widget Function(BuildContext context) builder;
