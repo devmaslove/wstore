@@ -1,6 +1,7 @@
 # RStore
 
 RStore - это библиотека для state manage во Flutter.
+Добавляем реактивность в наши виджеты.
 
 ## Idea
 
@@ -11,9 +12,11 @@ RStore - это библиотека для state manage во Flutter.
 
 Хочется также просто - объявляем переменную, пихаем её в нужный
 виджет, при изменении переменной виджет сам меняется.
-
-Ну и перестраиваться должны только те виджеты в которых поменялись
+Перестраиваться должны только те виджеты в которых поменялись
 связанные данные.
+
+Хочется чтобы не было магии, чтобы работало по стандартам flutter:
+вот данные - вот билдер на основе этих данных.
 
 В поисках решения я натолкнулся на [consumer](https://pub.dev/packages/consumer) -
 то что надо! Только допилить напильником :)
@@ -38,7 +41,7 @@ RStore - это библиотека для state manage во Flutter.
 - Можно использовать простые типы данных без всяких обёрток (не нужно на каждую переменную создавать обертку)
 - Используем RStoreBuilder - как принято стандартно во Flutter без скрытой магии строим виджеты через билдеры
 - Встроенный RStoreProvider чтобы передать RStore вниз по дереву
-- Маленький и понятный интерфейс - setStore, Builder и Provider
+- Маленький, простой и понятный интерфейс - setStore, Builder и Provider
 
 ## Install
 
@@ -91,6 +94,26 @@ Widget build(BuildContext context) {
     ),
   );
 }
+```
+
+Также можно сделать билдер который обновляется вручную по строковому `tag`.
+Для этого используем `RStoreTagBuilder`, а в `setStore` указываем `tags`:
+```dart
+RStoreTagBuilder(
+  store: store,
+  tag: 'name of builder',
+  builder: (context) {
+    return Text(
+      '${store.counter}',
+      style: Theme.of(context).textTheme.headline4,
+    );
+  },
+),
+
+...
+
+// update builder by tag
+store.setStore(() => store.counter++, tags: ['name of builder']);
 ```
 
 ## Additional information
@@ -148,6 +171,14 @@ RStoreContextValueBuilder<_MyAppStore, int>(
 
 RStoreContextBuilder<_MyAppStore>(
   watch: (store) => [store.counter],
+  builder: (context, store) => Text(
+    '${store.counter}',
+    style: Theme.of(context).textTheme.headline4,
+  ),
+)
+
+RStoreContextTagBuilder<_MyAppStore>(
+  tag: 'name of builder',
   builder: (context, store) => Text(
     '${store.counter}',
     style: Theme.of(context).textTheme.headline4,

@@ -6,29 +6,44 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // идея взята из https://pub.dev/packages/consumer
-// https://medium.com/flutter-community/flutter-oneyearchallenge-scoped-model-vs-bloc-pattern-vs-states-rebuilder-23ba11813a4f
-
-typedef WatchList = List<dynamic>;
 
 class RStore {
-  late StreamController _controller;
-  late Stream _stream;
+  late StreamController _controllerWatchers;
+  late Stream _streamWatchers;
+  late StreamController<List<String>> _controllerTags;
+  late Stream<List<String>> _streamTags;
+
+  Stream get streamChangeStore => _streamWatchers;
+
+  Stream<List<String>> get streamUpdateByTags => _streamTags;
 
   /// Creates a reactive store.
   RStore() {
-    _controller = StreamController.broadcast();
-    _stream = _controller.stream;
+    _controllerWatchers = StreamController.broadcast();
+    _streamWatchers = _controllerWatchers.stream;
+    _controllerTags = StreamController<List<String>>.broadcast();
+    _streamTags = _controllerTags.stream;
   }
 
-  Stream get streamChangeStore => _stream;
-
-  /// Notifying watchers that the store has been updated.
-  void setStore([Function()? fn]) {
-    fn?.call();
-    // TODO: add param - tags : ['Text', 'Text2'] (для обновления конкретных билдеров)
+  /// Notifying that the store has been updated.
+  void setStore(VoidCallback fn, {final List<String> tags = const []}) {
+    fn();
     // TODO: add param - debounceDelay : 400
-    // notify watchers
-    _controller.add(this);
+    notifyChangeStore();
+    updateBuildersByTags(tags);
+  }
+
+  /// Notifying builders with watchers that the store has been updated.
+  @protected
+  void notifyChangeStore() {
+    _controllerWatchers.add(this);
+  }
+
+  /// Notifying builders with tags that the store has been updated and need
+  /// rebuild.
+  @protected
+  void updateBuildersByTags(final List<String> tags) {
+    if (tags.isNotEmpty) _controllerTags.add([...tags]);
   }
 
   @protected
@@ -36,12 +51,127 @@ class RStore {
   void dispose() {}
 }
 
-// TODO: Сделать RStoreTagBuilder - чтобы обновлять не по watch а по tag
-// это позволит вручную обновлять нужные виджеты
+class RStoreProvider<T extends RStore> extends StatelessWidget {
+  final Widget child;
+  final T store;
+
+  const RStoreProvider({
+    Key? key,
+    required this.child,
+    required this.store,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Provider<T>(
+      create: (_) => store,
+      dispose: (_, __) => store.dispose(),
+      lazy: false,
+      child: child,
+    );
+  }
+
+  /// Obtains the nearest [RStoreProvider<T>] up its widget tree and returns its
+  /// store.
+  static T of<T>(BuildContext context) {
+    return Provider.of<T>(context, listen: false);
+  }
+}
+
+/// RStoreTagBuilder allows you to create widgets that can be updated manually
+/// by tag (see RStore.updateBuildersByTags)
+class RStoreTagBuilder extends StatelessWidget {
+  final Widget Function(BuildContext context) builder;
+  final String tag;
+  final RStore store;
+
+  const RStoreTagBuilder({
+    Key? key,
+    required this.builder,
+    required this.store,
+    required this.tag,
+  })  : assert(tag.length > 0, 'tag must not be empty'),
+        super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return _ReactiveTagWidget(
+      builder: builder,
+      tag: tag,
+      stream: store.streamUpdateByTags,
+    );
+  }
+}
+
+/// RStoreContextTagBuilder allows you to create widgets that can be updated
+/// manually by tag (see RStore.updateBuildersByTags)
+class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
+  final Widget Function(BuildContext context, T store) builder;
+  final String tag;
+
+  const RStoreContextTagBuilder({
+    Key? key,
+    required this.builder,
+    required this.tag,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final store = RStoreProvider.of<T>(context);
+    return _ReactiveTagWidget(
+      builder: (context) {
+        return builder(context, store);
+      },
+      tag: tag,
+      stream: store.streamUpdateByTags,
+    );
+  }
+}
+
+class _ReactiveTagWidget extends StatefulWidget {
+  final Stream<List<String>> stream;
+  final String tag;
+  final Widget Function(BuildContext context) builder;
+
+  const _ReactiveTagWidget({
+    required this.stream,
+    required this.builder,
+    required this.tag,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  _ReactiveTagWidgetState createState() => _ReactiveTagWidgetState();
+}
+
+class _ReactiveTagWidgetState extends State<_ReactiveTagWidget> {
+  late StreamSubscription<List<String>> _changeStoreSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _changeStoreSubscription = widget.stream.listen((tags) {
+      if (mounted) {
+        if (tags.contains(widget.tag)) {
+          setState(() {});
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _changeStoreSubscription.cancel();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.builder(context);
+}
 
 class RStoreBuilder extends StatelessWidget {
   final Widget Function(BuildContext context) builder;
-  final WatchList Function() watch;
+  final List<dynamic> Function() watch;
   final RStore store;
 
   const RStoreBuilder({
@@ -87,7 +217,7 @@ class RStoreValueBuilder<V> extends StatelessWidget {
 
 class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
   final Widget Function(BuildContext context, T store) builder;
-  final WatchList Function(T store) watch;
+  final List<dynamic> Function(T store) watch;
 
   const RStoreContextBuilder({
     Key? key,
@@ -131,36 +261,9 @@ class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
   }
 }
 
-class RStoreProvider<T extends RStore> extends StatelessWidget {
-  final Widget child;
-  final T store;
-
-  const RStoreProvider({
-    Key? key,
-    required this.child,
-    required this.store,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Provider<T>(
-      create: (_) => store,
-      dispose: (_, __) => store.dispose(),
-      lazy: false,
-      child: child,
-    );
-  }
-
-  /// Obtains the nearest [RStoreProvider<T>] up its widget tree and returns its
-  /// store.
-  static T of<T>(BuildContext context) {
-    return Provider.of<T>(context, listen: false);
-  }
-}
-
 class _ReactiveWidget extends StatefulWidget {
   final Stream stream;
-  final WatchList Function() watch;
+  final List<dynamic> Function() watch;
   final Widget Function(BuildContext context) builder;
 
   const _ReactiveWidget({
@@ -176,7 +279,7 @@ class _ReactiveWidget extends StatefulWidget {
 
 class _ReactiveWidgetState extends State<_ReactiveWidget> {
   late StreamSubscription _setStoreSubscription;
-  late WatchList _lastWatch;
+  late List<dynamic> _lastWatch;
 
   @override
   void initState() {
@@ -185,7 +288,7 @@ class _ReactiveWidgetState extends State<_ReactiveWidget> {
     _lastWatch = _cloneWatchList(widget.watch());
     _setStoreSubscription = widget.stream.listen((_) {
       if (_lastWatch.isNotEmpty && mounted) {
-        WatchList nowWatch = widget.watch();
+        List<dynamic> nowWatch = widget.watch();
         if (_isWatchValuesUpdates(nowWatch)) {
           setState(() => _lastWatch = _cloneWatchList(nowWatch));
         }
@@ -193,7 +296,7 @@ class _ReactiveWidgetState extends State<_ReactiveWidget> {
     });
   }
 
-  bool _isWatchValuesUpdates(final WatchList newWatch) {
+  bool _isWatchValuesUpdates(final List<dynamic> newWatch) {
     assert(_lastWatch.length == newWatch.length);
     for (var i = 0; i < _lastWatch.length; i++) {
       // TODO: need deep compare - lists, maps, sets (listEquals)
@@ -202,7 +305,7 @@ class _ReactiveWidgetState extends State<_ReactiveWidget> {
     return false;
   }
 
-  WatchList _cloneWatchList(final WatchList watchList) {
+  List<dynamic> _cloneWatchList(final List<dynamic> watchList) {
     // TODO: need deep copy - lists, maps, sets
     // List newList = json.decode(json.encode(oldList));
     return [...watchList];

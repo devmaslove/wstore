@@ -50,15 +50,15 @@ class MainPageStore extends RStore {
   Color detailedColor = Colors.transparent;
   int detailedIndex = -1;
 
-  getItems() async {
+  loadItems() async {
     items = await Item.fetchItems();
-    setStore();
+    notifyChangeStore();
   }
 
   showDetailed(Color color, int index) {
     detailedColor = color;
     detailedIndex = index;
-    setStore();
+    notifyChangeStore();
   }
 
   increment() {
@@ -66,7 +66,7 @@ class MainPageStore extends RStore {
     // recreate new Item - for update watchers
     Item newItem = Item()..count = currValue + 1;
     items[detailedIndex] = newItem;
-    setStore();
+    notifyChangeStore();
   }
 }
 
@@ -126,7 +126,7 @@ class MainPageContent extends StatelessWidget {
                     child: ItemCard(
                       item: Item(),
                       color: randomColor(),
-                      onTap: () => store.getItems(),
+                      onTap: () => store.loadItems(),
                     ),
                   )
                 : SizedBox(
