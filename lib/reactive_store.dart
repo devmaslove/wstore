@@ -85,15 +85,19 @@ class RStoreProvider<T extends RStore> extends StatelessWidget {
 /// RStoreTagBuilder allows you to create widgets that can be updated manually
 /// by tag (see RStore.updateBuildersByTags)
 class RStoreTagBuilder extends StatelessWidget {
-  final Widget Function(BuildContext context) builder;
+  final Widget Function(BuildContext context, Widget? child) builder;
   final String tag;
   final RStore store;
+
+  /// The child widget to pass to the builder, should not be rebuilt
+  final Widget? child;
 
   const RStoreTagBuilder({
     Key? key,
     required this.builder,
     required this.store,
     required this.tag,
+    this.child,
   })  : assert(tag.length > 0, 'tag must not be empty'),
         super(key: key);
 
@@ -101,6 +105,7 @@ class RStoreTagBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ReactiveTagWidget(
       builder: builder,
+      child: child,
       tag: tag,
       stream: store.streamUpdateByTags,
     );
@@ -110,22 +115,27 @@ class RStoreTagBuilder extends StatelessWidget {
 /// RStoreContextTagBuilder allows you to create widgets that can be updated
 /// manually by tag (see RStore.updateBuildersByTags)
 class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
-  final Widget Function(BuildContext context, T store) builder;
+  final Widget Function(BuildContext context, T store, Widget? child) builder;
   final String tag;
+
+  /// The child widget to pass to the builder, should not be rebuilt
+  final Widget? child;
 
   const RStoreContextTagBuilder({
     Key? key,
     required this.builder,
     required this.tag,
+    this.child,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final store = RStoreProvider.of<T>(context);
     return _ReactiveTagWidget(
-      builder: (context) {
-        return builder(context, store);
+      builder: (context, child) {
+        return builder(context, store, child);
       },
+      child: child,
       tag: tag,
       stream: store.streamUpdateByTags,
     );
@@ -135,12 +145,14 @@ class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
 class _ReactiveTagWidget extends StatefulWidget {
   final Stream<List<String>> stream;
   final String tag;
-  final Widget Function(BuildContext context) builder;
+  final Widget Function(BuildContext context, Widget? child) builder;
+  final Widget? child;
 
   const _ReactiveTagWidget({
     required this.stream,
     required this.builder,
     required this.tag,
+    required this.child,
     Key? key,
   }) : super(key: key);
 
@@ -170,25 +182,30 @@ class _ReactiveTagWidgetState extends State<_ReactiveTagWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.builder(context);
+  Widget build(BuildContext context) => widget.builder(context, widget.child);
 }
 
 class RStoreBuilder extends StatelessWidget {
-  final Widget Function(BuildContext context) builder;
+  final Widget Function(BuildContext context, Widget? child) builder;
   final List<dynamic> Function() watch;
   final RStore store;
+
+  /// The child widget to pass to the builder, should not be rebuilt
+  final Widget? child;
 
   const RStoreBuilder({
     Key? key,
     required this.builder,
     required this.store,
     required this.watch,
+    this.child,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return _ReactiveWidget(
       builder: builder,
+      child: child,
       watch: watch,
       stream: store.streamChangeStore,
     );
@@ -196,23 +213,29 @@ class RStoreBuilder extends StatelessWidget {
 }
 
 class RStoreValueBuilder<V> extends StatelessWidget {
-  final Widget Function(BuildContext context, V watchVariable) builder;
+  final Widget Function(BuildContext context, V watchVariable, Widget? child)
+      builder;
   final V Function() watch;
   final RStore store;
+
+  /// The child widget to pass to the builder, should not be rebuilt
+  final Widget? child;
 
   const RStoreValueBuilder({
     Key? key,
     required this.builder,
     required this.store,
     required this.watch,
+    this.child,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return _ReactiveWidget(
-      builder: (context) {
-        return builder(context, watch());
+      builder: (context, child) {
+        return builder(context, watch(), child);
       },
+      child: child,
       watch: () => [watch()],
       stream: store.streamChangeStore,
     );
@@ -220,22 +243,27 @@ class RStoreValueBuilder<V> extends StatelessWidget {
 }
 
 class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
-  final Widget Function(BuildContext context, T store) builder;
+  final Widget Function(BuildContext context, T store, Widget? child) builder;
   final List<dynamic> Function(T store) watch;
+
+  /// The child widget to pass to the builder, should not be rebuilt
+  final Widget? child;
 
   const RStoreContextBuilder({
     Key? key,
     required this.builder,
     required this.watch,
+    this.child,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final store = RStoreProvider.of<T>(context);
     return _ReactiveWidget(
-      builder: (context) {
-        return builder(context, store);
+      builder: (context, child) {
+        return builder(context, store, child);
       },
+      child: child,
       watch: () => watch(store),
       stream: store.streamChangeStore,
     );
@@ -243,22 +271,28 @@ class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
 }
 
 class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
-  final Widget Function(BuildContext context, V watchVariable) builder;
+  final Widget Function(BuildContext context, V watchVariable, Widget? child)
+      builder;
   final V Function(T store) watch;
+
+  /// The child widget to pass to the builder, should not be rebuilt
+  final Widget? child;
 
   const RStoreContextValueBuilder({
     Key? key,
     required this.builder,
     required this.watch,
+    this.child,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final store = RStoreProvider.of<T>(context);
     return _ReactiveWidget(
-      builder: (context) {
-        return builder(context, watch(store));
+      builder: (context, child) {
+        return builder(context, watch(store), child);
       },
+      child: child,
       watch: () => [watch(store)],
       stream: store.streamChangeStore,
     );
@@ -268,12 +302,14 @@ class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
 class _ReactiveWidget extends StatefulWidget {
   final Stream stream;
   final List<dynamic> Function() watch;
-  final Widget Function(BuildContext context) builder;
+  final Widget Function(BuildContext context, Widget? child) builder;
+  final Widget? child;
 
   const _ReactiveWidget({
     required this.stream,
     required this.builder,
     required this.watch,
+    required this.child,
     Key? key,
   }) : super(key: key);
 
@@ -322,5 +358,5 @@ class _ReactiveWidgetState extends State<_ReactiveWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.builder(context);
+  Widget build(BuildContext context) => widget.builder(context, widget.child);
 }

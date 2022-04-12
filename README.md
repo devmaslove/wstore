@@ -82,7 +82,7 @@ Widget build(BuildContext context) {
       child: RStoreBuilder(
         store: store,
         watch: () => [store.counter],
-        builder: (context) => Text(
+        builder: (context, _) => Text(
           '${store.counter}',
           style: Theme.of(context).textTheme.headline4,
         ),
@@ -102,7 +102,7 @@ Widget build(BuildContext context) {
 RStoreTagBuilder(
   store: store,
   tag: 'name of builder',
-  builder: (context) {
+  builder: (context, _) {
     return Text(
       '${store.counter}',
       style: Theme.of(context).textTheme.headline4,
@@ -125,7 +125,7 @@ store.setStore(() => store.counter++, tags: ['name of builder']);
 RStoreValueBuilder<int>(
   store: store,
   watch: () => store.counter,
-  builder: (context, counter) {
+  builder: (context, counter, _) {
     return Text(
       '$counter',
       style: Theme.of(context).textTheme.headline4,
@@ -161,7 +161,7 @@ Widget build(BuildContext context) {
 ```dart
 RStoreContextValueBuilder<_MyAppStore, int>(
   watch: (store) => store.counter,
-  builder: (context, counter) {
+  builder: (context, counter, _) {
     return Text(
       '$counter',
       style: Theme.of(context).textTheme.headline4,
@@ -171,7 +171,7 @@ RStoreContextValueBuilder<_MyAppStore, int>(
 
 RStoreContextBuilder<_MyAppStore>(
   watch: (store) => [store.counter],
-  builder: (context, store) => Text(
+  builder: (context, store, _) => Text(
     '${store.counter}',
     style: Theme.of(context).textTheme.headline4,
   ),
@@ -179,9 +179,31 @@ RStoreContextBuilder<_MyAppStore>(
 
 RStoreContextTagBuilder<_MyAppStore>(
   tag: 'name of builder',
-  builder: (context, store) => Text(
+  builder: (context, store, _) => Text(
     '${store.counter}',
     style: Theme.of(context).textTheme.headline4,
   ),
 )
+```
+
+В билдеры можно передать виджет в `child` который не должен ребилдится
+при изменении:
+
+```dart
+RStoreValueBuilder<int>(
+  store: store,
+  watch: () => store.counter,
+  child: Text('Button has been pressed:'), // not be rebuilt
+  builder: (context, counter, child) {
+    return Column(
+      children: [
+        child,
+        Text(
+          '$counter',
+          style: Theme.of(context).textTheme.headline4,
+        ),
+      ],
+    );
+  },
+),
 ```

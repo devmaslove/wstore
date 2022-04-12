@@ -86,7 +86,7 @@ class MainPageContent extends StatelessWidget {
           height: 150,
           child: RStoreContextBuilder<MainPageStore>(
             watch: (store) => [store.items],
-            builder: (context, store) => store.items.isEmpty
+            builder: (context, store, _) => store.items.isEmpty
                 ? Center(
                     child: Container(),
                     // child: CircularProgressIndicator(),
@@ -101,7 +101,7 @@ class MainPageContent extends StatelessWidget {
                         child: RStoreValueBuilder<Item>(
                             store: store,
                             watch: () => store.items[index],
-                            builder: (context, item) {
+                            builder: (context, item, _) {
                               return ItemCard(
                                 item: item,
                                 color: randColor,
@@ -119,7 +119,7 @@ class MainPageContent extends StatelessWidget {
         Center(
           child: RStoreContextBuilder<MainPageStore>(
             watch: (store) => [store.detailedIndex, store.detailedColor],
-            builder: (context, store) => store.detailedIndex < 0
+            builder: (context, store, _) => store.detailedIndex < 0
                 ? SizedBox(
                     width: 200,
                     height: 200,
@@ -135,7 +135,7 @@ class MainPageContent extends StatelessWidget {
                     child: RStoreValueBuilder<Item>(
                         store: store,
                         watch: () => store.items[store.detailedIndex],
-                        builder: (context, item) {
+                        builder: (context, item, _) {
                           return ItemCard(
                             item: item,
                             color: store.detailedColor,
