@@ -1,6 +1,6 @@
 name: reactive_store
-description: A state management library that helps implement the Scoped design pattern.
-version: 0.0.3
+description: A state management library that helps add reactivity to widgets.
+version: 0.0.4
 repository: https://github.com/dmitrymaslovhome/reactive_store
 
 environment:
@@ -10,7 +10,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  provider: ^6.0.2
 
 dev_dependencies:
   flutter_test:

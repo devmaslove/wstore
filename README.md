@@ -40,7 +40,7 @@ RStore - это библиотека для state manage во Flutter.
 - Виджеты сами перестраиваются в зависимости от данных в `RStore`, не нужно управлять подписками
 - Можно использовать простые типы данных без всяких обёрток (не нужно на каждую переменную создавать обертку)
 - Используем RStoreBuilder - как принято стандартно во Flutter без скрытой магии строим виджеты через билдеры
-- Встроенный RStoreProvider чтобы передать RStore вниз по дереву
+- Встроенный RStoreProvider чтобы создать передать RStore вниз по дереву
 - Маленький, простой и понятный интерфейс - setStore, Builder и Provider
 
 ## Install
@@ -142,7 +142,7 @@ RStoreValueBuilder<int>(
 Widget build(BuildContext context) {
   return MaterialApp(
     home: RStoreProvider<_MyAppStore>(
-      store: _MyAppStore(),
+      create: () => _MyAppStore(),
       child: const _MyAppContent(),
     ),
   );
@@ -207,3 +207,12 @@ RStoreValueBuilder<int>(
   },
 ),
 ```
+
+## Built upon
+
+Под капотом это используется обычную механику Flatter`а:
+
+- RStore - создает стримы которые пушатся по setStore
+- Билдеры - это StatefulWidget`ы которые подписываются на стримы из RStore
+- Если watch лист изменился то вызывается setState и происходит ребилд (сравнение элементов в watch происходит по ссылке - по этому в RStore надо перезаписывать объект, чтобы подхватилось изменения)
+- RStoreProvider оборачивает RStore в InheritedWidget

@@ -3,7 +3,6 @@ library reactive_store;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 // идея взята из https://pub.dev/packages/consumer
 
@@ -55,31 +54,68 @@ class RStore {
   void dispose() {}
 }
 
-class RStoreProvider<T extends RStore> extends StatelessWidget {
+class RStoreProvider<T extends RStore> extends StatefulWidget {
   final Widget child;
-  final T store;
+  final T Function() create;
 
   const RStoreProvider({
     Key? key,
     required this.child,
-    required this.store,
+    required this.create,
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return Provider<T>(
-      create: (_) => store,
-      dispose: (_, __) => store.dispose(),
-      lazy: false,
-      child: child,
-    );
-  }
+  State<RStoreProvider<T>> createState() => _RStoreProviderState<T>();
 
   /// Obtains the nearest [RStoreProvider<T>] up its widget tree and returns its
   /// store.
-  static T of<T>(BuildContext context) {
-    return Provider.of<T>(context, listen: false);
+  static T of<T extends RStore>(BuildContext context) {
+    var widget = context
+        .getElementForInheritedWidgetOfExactType<_InheritedRStore<T>>()
+        ?.widget;
+    if (widget == null) {
+      throw RStoreProviderNotFoundError(T, context.widget.runtimeType);
+    } else {
+      return (widget as _InheritedRStore<T>).store;
+    }
   }
+}
+
+class _RStoreProviderState<T extends RStore> extends State<RStoreProvider<T>> {
+  late T store;
+
+  @override
+  void initState() {
+    store = widget.create();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    store.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _InheritedRStore<T>(
+      store: store,
+      child: widget.child,
+    );
+  }
+}
+
+class _InheritedRStore<T extends RStore> extends InheritedWidget {
+  final T store;
+
+  const _InheritedRStore({
+    Key? key,
+    required Widget child,
+    required this.store,
+  }) : super(key: key, child: child);
+
+  @override
+  bool updateShouldNotify(_InheritedRStore<T> oldWidget) => (oldWidget != this);
 }
 
 /// RStoreTagBuilder allows you to create widgets that can be updated manually
@@ -359,4 +395,29 @@ class _ReactiveWidgetState extends State<_ReactiveWidget> {
 
   @override
   Widget build(BuildContext context) => widget.builder(context, widget.child);
+}
+
+/// The error that will be thrown if the RStore cannot be found in the
+/// Widget tree.
+class RStoreProviderNotFoundError extends Error {
+  RStoreProviderNotFoundError(this.valueType, this.widgetType);
+
+  /// The type of the value being retrieved
+  final Type valueType;
+
+  /// The type of the Widget requesting the value
+  final Type widgetType;
+
+  @override
+  String toString() {
+    return '''Error: Could not find the correct RStoreProvider<$valueType> above this $widgetType Widget.
+
+Make sure that $widgetType is under your RStoreProvider<$valueType>.
+
+To fix, please add to top of your widget tree:
+  RStoreProvider<$valueType>(
+   create: () => $valueType(),
+   child: $widgetType(...
+''';
+  }
 }

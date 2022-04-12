@@ -28,7 +28,7 @@ class MainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RStoreProvider<MainPageStore>(
-      store: MainPageStore(),
+      create: () => MainPageStore(),
       child: Scaffold(
         appBar: AppBar(title: const Text('RStore builder')),
         body: const SafeArea(child: MainPageContent()),
