@@ -11,11 +11,33 @@ import 'package:flutter/material.dart';
 // int get total => computed((){ return this.valueA + this.valueB; }, [this.valueA, this.valueB]);
 // она будет кешировать результат - чтобы ссылка не менялась
 
+bool _isWatchValuesUpdates(
+  final List<dynamic> oldWatch,
+  final List<dynamic> newWatch,
+) {
+  if (oldWatch.length == newWatch.length) {
+    for (var i = 0; i < oldWatch.length; i++) {
+      // TODO: need deep compare - lists, maps, sets (listEquals)
+      if (oldWatch[i] != newWatch[i]) return true;
+    }
+  }
+  return false;
+}
+
+List<dynamic> _cloneWatchList(final List<dynamic> watchList) {
+  // TODO: need deep copy - lists, maps, sets
+  // List newList = json.decode(json.encode(oldList));
+  return [...watchList];
+}
+
 class RStore {
   late StreamController _controllerWatchers;
   late Stream _streamWatchers;
   late StreamController<List<String>> _controllerTags;
   late Stream<List<String>> _streamTags;
+  final Map<String, dynamic> _composedValues = {};
+  final Map<String, dynamic> _composedWatchList = {};
+  final Map<String, dynamic> _composedWatchFunc = {};
 
   Stream get streamChangeStore => _streamWatchers;
 
@@ -37,9 +59,33 @@ class RStore {
     updateBuildersByTags(tags);
   }
 
+  /// Cache values for add to Builders watch lists:
+  ///
+  /// int storeValue = 1;
+  /// int get composeValue => compose<int>(
+  ///   getValue: () => storeValue + 1,
+  ///   watch: () => [storeValue],
+  ///   keyName: "composeValue",
+  /// );
+  @protected
+  V compose<V>({
+    required V Function() getValue,
+    required List<dynamic> Function() watch,
+    required String keyName,
+  }) {
+    V? value = _composedValues[keyName];
+    if (value is V) return value;
+    value = getValue();
+    _composedValues[keyName] = value;
+    _composedWatchList[keyName] = _cloneWatchList(watch());
+    _composedWatchFunc[keyName] = watch;
+    return value;
+  }
+
   /// Notifying builders with watchers that the store has been updated.
   @protected
   void notifyChangeStore() {
+    _checkChangeComposed();
     _controllerWatchers.add(this);
   }
 
@@ -52,6 +98,22 @@ class RStore {
 
   @mustCallSuper
   void dispose() {}
+
+  _checkChangeComposed() {
+    final List<String> removedKeys = [];
+    _composedWatchList.forEach((key, value) {
+      List<dynamic> oldWatch = value;
+      List<dynamic> newWatch = _composedWatchFunc[key]?.call() ?? const [];
+      if (_isWatchValuesUpdates(oldWatch, newWatch)) {
+        _composedValues.remove(key);
+        _composedWatchFunc.remove(key);
+        removedKeys.add(key);
+      }
+    });
+    for (final key in removedKeys) {
+      _composedWatchList.remove(key);
+    }
+  }
 }
 
 class RStoreProvider<T extends RStore> extends StatefulWidget {
@@ -365,26 +427,11 @@ class _ReactiveWidgetState extends State<_ReactiveWidget> {
     _setStoreSubscription = widget.stream.listen((_) {
       if (_lastWatch.isNotEmpty && mounted) {
         List<dynamic> nowWatch = widget.watch();
-        if (_isWatchValuesUpdates(nowWatch)) {
+        if (_isWatchValuesUpdates(_lastWatch, nowWatch)) {
           setState(() => _lastWatch = _cloneWatchList(nowWatch));
         }
       }
     });
-  }
-
-  bool _isWatchValuesUpdates(final List<dynamic> newWatch) {
-    assert(_lastWatch.length == newWatch.length);
-    for (var i = 0; i < _lastWatch.length; i++) {
-      // TODO: need deep compare - lists, maps, sets (listEquals)
-      if (_lastWatch[i] != newWatch[i]) return true;
-    }
-    return false;
-  }
-
-  List<dynamic> _cloneWatchList(final List<dynamic> watchList) {
-    // TODO: need deep copy - lists, maps, sets
-    // List newList = json.decode(json.encode(oldList));
-    return [...watchList];
   }
 
   @override
