@@ -6,11 +6,6 @@ import 'package:flutter/material.dart';
 
 // идея взята из https://pub.dev/packages/consumer
 
-// TODO: Добавить метод computed который будет кешировать
-// значения которые от него зависят, что-то типа
-// int get total => computed((){ return this.valueA + this.valueB; }, [this.valueA, this.valueB]);
-// она будет кешировать результат - чтобы ссылка не менялась
-
 bool _isWatchValuesUpdates(
   final List<dynamic> oldWatch,
   final List<dynamic> newWatch,
