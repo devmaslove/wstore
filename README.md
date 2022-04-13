@@ -248,7 +248,7 @@ class _MyAppStore extends RStore {
 
 ## Built upon
 
-Под капотом это используется обычную механику Flatter`а:
+Под капотом это использует обычную механику Flatter`а:
 
 - RStore - создает стримы которые пушатся по setStore
 - Билдеры - это StatefulWidget`ы которые подписываются на стримы из RStore
