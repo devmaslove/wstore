@@ -26,10 +26,10 @@ List<dynamic> _cloneWatchList(final List<dynamic> watchList) {
 }
 
 class RStore {
-  late StreamController _controllerWatchers;
-  late Stream _streamWatchers;
-  late StreamController<List<String>> _controllerTags;
-  late Stream<List<String>> _streamTags;
+  late final StreamController _controllerWatchers;
+  late final Stream _streamWatchers;
+  late final StreamController<List<String>> _controllerTags;
+  late final Stream<List<String>> _streamTags;
   final Map<String, dynamic> _composedValues = {};
   final Map<String, dynamic> _composedWatchList = {};
   final Map<String, dynamic> _composedWatchFunc = {};
@@ -77,6 +77,11 @@ class RStore {
     return value;
   }
 
+  /// Create new timer
+  ///
+  /// Timers are automatically canceled when RStore.dispose
+  /// or when created a new one with same timerId
+  /// (сan be used to set debounce time e.g.)
   setTimer({
     required final VoidCallback onTimer,
     required final Duration duration,
