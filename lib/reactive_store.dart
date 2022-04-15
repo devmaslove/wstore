@@ -511,8 +511,10 @@ class RStoreNoContextError extends Error {
 
 Context sets only in RStoreProvider.
 Make sure that RStore is under your RStoreProvider.
-
 To fix, please create RStore in RStoreProvider.
+
+Or RStoreProvider has been unmounted, so the RState no longer has a context
+(context called after RState.dispose).
 ''';
   }
 }
