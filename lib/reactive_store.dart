@@ -34,6 +34,12 @@ class RStore {
   final Map<String, dynamic> _composedWatchList = {};
   final Map<String, dynamic> _composedWatchFunc = {};
   final Map<int, Timer> _timers = {};
+  BuildContext? _context;
+
+  BuildContext get context {
+    if (_context == null) throw RStoreNoContextError();
+    return _context!;
+  }
 
   Stream get streamChangeStore => _streamWatchers;
 
@@ -118,6 +124,8 @@ class RStore {
 
   @mustCallSuper
   void dispose() {
+    // clear context
+    _context = null;
     // clear all timers
     _timers.forEach((_, timer) {
       timer.cancel();
@@ -186,6 +194,7 @@ class _RStoreProviderState<T extends RStore> extends State<RStoreProvider<T>> {
 
   @override
   Widget build(BuildContext context) {
+    store._context = context;
     return _InheritedRStore<T>(
       store: store,
       child: widget.child,
@@ -491,6 +500,19 @@ To fix, please add to top of your widget tree:
   RStoreProvider<$valueType>(
    create: () => $valueType(),
    child: $widgetType(...
+''';
+  }
+}
+
+class RStoreNoContextError extends Error {
+  @override
+  String toString() {
+    return '''Error: Could not find context for this RStore.
+
+Context sets only in RStoreProvider.
+Make sure that RStore is under your RStoreProvider.
+
+To fix, please create RStore in RStoreProvider.
 ''';
   }
 }
