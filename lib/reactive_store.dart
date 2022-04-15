@@ -33,6 +33,7 @@ class RStore {
   final Map<String, dynamic> _composedValues = {};
   final Map<String, dynamic> _composedWatchList = {};
   final Map<String, dynamic> _composedWatchFunc = {};
+  final Map<int, Timer> _timers = {};
 
   Stream get streamChangeStore => _streamWatchers;
 
@@ -49,7 +50,6 @@ class RStore {
   /// Notifying that the store has been updated.
   void setStore(VoidCallback fn, {final List<String> tags = const []}) {
     fn();
-    // TODO: add param - debounceDelay : 400
     notifyChangeStore();
     updateBuildersByTags(tags);
   }
@@ -77,6 +77,26 @@ class RStore {
     return value;
   }
 
+  setTimer({
+    required final VoidCallback onTimer,
+    required final Duration duration,
+    final int timerId = 0,
+    final bool periodic = false,
+  }) {
+    // kill old timer
+    killTimer(timerId: timerId);
+    // create new timer
+    if (periodic) {
+      _timers[timerId] = Timer.periodic(duration, (_) => onTimer());
+    } else {
+      _timers[timerId] = Timer(duration, onTimer);
+    }
+  }
+
+  killTimer({final int timerId = 0}) {
+    _timers.remove(timerId)?.cancel();
+  }
+
   /// Notifying builders with watchers that the store has been updated.
   @protected
   void notifyChangeStore() {
@@ -92,7 +112,13 @@ class RStore {
   }
 
   @mustCallSuper
-  void dispose() {}
+  void dispose() {
+    // clear all timers
+    _timers.forEach((_, timer) {
+      timer.cancel();
+    });
+    _timers.clear();
+  }
 
   _checkChangeComposed() {
     final List<String> removedKeys = [];
