@@ -41,10 +41,6 @@ class RStore {
     return _context!;
   }
 
-  Stream get streamChangeStore => _streamWatchers;
-
-  Stream<List<String>> get streamUpdateByTags => _streamTags;
-
   /// Creates a reactive store.
   RStore() {
     _controllerWatchers = StreamController.broadcast();
@@ -240,7 +236,7 @@ class RStoreTagBuilder extends StatelessWidget {
       builder: builder,
       child: child,
       tag: tag,
-      stream: store.streamUpdateByTags,
+      stream: store._streamTags,
     );
   }
 }
@@ -270,7 +266,7 @@ class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
       },
       child: child,
       tag: tag,
-      stream: store.streamUpdateByTags,
+      stream: store._streamTags,
     );
   }
 }
@@ -340,7 +336,7 @@ class RStoreBuilder extends StatelessWidget {
       builder: builder,
       child: child,
       watch: watch,
-      stream: store.streamChangeStore,
+      stream: store._streamWatchers,
     );
   }
 }
@@ -370,7 +366,7 @@ class RStoreValueBuilder<V> extends StatelessWidget {
       },
       child: child,
       watch: () => [watch()],
-      stream: store.streamChangeStore,
+      stream: store._streamWatchers,
     );
   }
 }
@@ -398,7 +394,7 @@ class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
       },
       child: child,
       watch: () => watch(store),
-      stream: store.streamChangeStore,
+      stream: store._streamWatchers,
     );
   }
 }
@@ -427,7 +423,7 @@ class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
       },
       child: child,
       watch: () => [watch(store)],
-      stream: store.streamChangeStore,
+      stream: store._streamWatchers,
     );
   }
 }

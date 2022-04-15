@@ -2,21 +2,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:reactive_store/reactive_store.dart';
 
 class RStoreTest extends RStore {
-  int counter = 0;
-  String title = '';
+  String hello = '';
+
+  get sayHello => compose<String>(
+        getValue: () => hello + " World",
+        watch: () => [hello],
+        keyName: 'sayHello',
+      );
 }
 
 void main() {
-  test('RStore emitted event on setStore', () {
+  test('RStore compose works', () {
     final store = RStoreTest();
-    store.streamChangeStore.listen((event) {
-      expectAsync1((event) {
-        expect(event, store);
-      });
-    });
+
+    String say1 = store.sayHello;
+    expect(say1, equals(" World"));
+
+    String say2 = store.sayHello;
+    expect(identical(say1, say2), true);
+
     store.setStore(() {
-      store.counter++;
-      store.title = 'test';
+      store.hello = 'Hello';
     });
+    String say3 = store.sayHello;
+    expect(say3, equals("Hello World"));
   });
 }
