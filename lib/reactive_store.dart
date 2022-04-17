@@ -35,10 +35,22 @@ class RStore {
   final Map<String, dynamic> _composedWatchFunc = {};
   final Map<int, Timer> _timers = {};
   BuildContext? _context;
+  RStoreWidget? _widget;
+  BoxConstraints? _constraints;
 
   BuildContext get context {
-    if (_context == null) throw RStoreNoContextError();
+    if (_context == null) throw RStoreWidgetNotFoundError("Context");
     return _context!;
+  }
+
+  RStoreWidget get widget {
+    if (_context == null) throw RStoreWidgetNotFoundError("Widget");
+    return _widget!;
+  }
+
+  BoxConstraints get constraints {
+    if (_context == null) throw RStoreWidgetNotFoundError("Constraints");
+    return _constraints!;
   }
 
   /// Creates a reactive store.
@@ -120,8 +132,10 @@ class RStore {
 
   @mustCallSuper
   void dispose() {
-    // clear context
+    // clear widget, context and constraints
     _context = null;
+    _constraints = null;
+    _widget = null;
     // clear all timers
     _timers.forEach((_, timer) {
       timer.cancel();
@@ -146,6 +160,60 @@ class RStore {
   }
 }
 
+abstract class RStoreWidget<T extends RStore> extends StatefulWidget {
+  const RStoreWidget({Key? key}) : super(key: key);
+
+  @protected
+  Widget build(BuildContext context, T store);
+
+  @protected
+  T createRStore();
+
+  /// Will be called once after the widget has been mounted to RStore.
+  @protected
+  @mustCallSuper
+  initRStore(T store) {}
+
+  @override
+  State<RStoreWidget<T>> createState() => _RStoreWidgetState<T>();
+}
+
+class _RStoreWidgetState<T extends RStore> extends State<RStoreWidget<T>> {
+  late T store;
+  bool initStore = false;
+
+  @override
+  void initState() {
+    store = widget.createRStore();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    store.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        store._widget = widget;
+        store._context = context;
+        store._constraints = constraints;
+        if (!initStore) {
+          initStore = true;
+          widget.initRStore(store);
+        }
+        return _InheritedRStore<T>(
+          store: store,
+          child: widget.build(context, store),
+        );
+      },
+    );
+  }
+}
+
 class RStoreProvider<T extends RStore> extends StatefulWidget {
   final Widget child;
   final T Function() create;
@@ -159,8 +227,8 @@ class RStoreProvider<T extends RStore> extends StatefulWidget {
   @override
   State<RStoreProvider<T>> createState() => _RStoreProviderState<T>();
 
-  /// Obtains the nearest [RStoreProvider<T>] up its widget tree and returns its
-  /// store.
+  /// Obtains the nearest [RStoreProvider] or [RStoreWidget] up its widget tree
+  /// and returns its store.
   static T of<T extends RStore>(BuildContext context) {
     var widget = context
         .getElementForInheritedWidgetOfExactType<_InheritedRStore<T>>()
@@ -190,7 +258,6 @@ class _RStoreProviderState<T extends RStore> extends State<RStoreProvider<T>> {
 
   @override
   Widget build(BuildContext context) {
-    store._context = context;
     return _InheritedRStore<T>(
       store: store,
       child: widget.child,
@@ -478,39 +545,48 @@ class _ReactiveWidgetState extends State<_ReactiveWidget> {
 /// The error that will be thrown if the RStore cannot be found in the
 /// Widget tree.
 class RStoreProviderNotFoundError extends Error {
-  RStoreProviderNotFoundError(this.valueType, this.widgetType);
-
   /// The type of the value being retrieved
   final Type valueType;
 
   /// The type of the Widget requesting the value
   final Type widgetType;
 
+  RStoreProviderNotFoundError(this.valueType, this.widgetType);
+
   @override
   String toString() {
-    return '''Error: Could not find the correct RStoreProvider<$valueType> above this $widgetType Widget.
+    return '''Error: Could not find the correct RStoreProvider<$valueType> or RStoreWidget<$valueType> above this $widgetType Widget.
 
-Make sure that $widgetType is under your RStoreProvider<$valueType>.
+Make sure that $widgetType is under your RStoreProvider<$valueType> or RStoreWidget<$valueType>.
 
 To fix, please add to top of your widget tree:
   RStoreProvider<$valueType>(
    create: () => $valueType(),
    child: $widgetType(...
+
+or add to top child: YourWidget where:
+  class YourWidget extends RStoreWidget<$valueType> {
+   ...
 ''';
   }
 }
 
-class RStoreNoContextError extends Error {
+class RStoreWidgetNotFoundError extends Error {
+  /// The type of the value being retrieved
+  final String valueType;
+
+  RStoreWidgetNotFoundError(this.valueType);
+
   @override
   String toString() {
-    return '''Error: Could not find context for this RStore.
+    return '''Error: Could not find ${valueType.toLowerCase()} for this RStore.
 
-Context sets only in RStoreProvider.
-Make sure that RStore is under your RStoreProvider.
-To fix, please create RStore in RStoreProvider.
+$valueType sets only in RStoreWidget.
+Make sure that RStore is under your RStoreWidget.
+To fix, please create RStore in RStoreWidget.
 
-Or RStoreProvider has been unmounted, so the RState no longer has a context
-(context called after RState.dispose).
+Or RStoreWidget has been unmounted, so the RState no longer has a ${valueType.toLowerCase()}
+(${valueType.toLowerCase()} called after RState.dispose).
 ''';
   }
 }
