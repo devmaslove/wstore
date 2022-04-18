@@ -293,6 +293,7 @@ class $NAME$ extends RStoreWidget<$STORE_NAME$> {
 
 Где:
 
+- Абреввиатура `rsw` - New RStore widget
 - `Applicable context` - равно `Applicable in Dart: top-level.`
 - `NAME` - начальная точка
 - `WIDGET_NAME` - равно `NAME` + skip if defined
