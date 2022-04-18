@@ -300,6 +300,49 @@ class $NAME$ extends RStoreWidget<$STORE_NAME$> {
 - `STORE_NAME` - равно `regularExpression(concat("_", WIDGET_NAME, "Store"), "^__", "_")` + skip if defined
 - `END` - конечная точка
 
+### VS Code - Code snippet
+
+Добавьте сниппет для языка Dart: `.../snippets/dart.json`
+
+User Snippets under File > Preferences (Code > Preferences on macOS),
+and then select the Dart language.
+
+```json
+{
+  "New RStore widget": {
+    "prefix": "rsw",
+    "body": [
+      "import 'package:flutter/material.dart';",
+      "import 'package:reactive_store/reactive_store.dart';",
+      "",
+      "class _$1Store extends RStore {",
+      "\tstatic _$1Store of(BuildContext context) {",
+      "\t\treturn RStoreProvider.of<_$1Store>(context);",
+      "\t}",
+      "",
+      "\t@override",
+      "\t$1 get widget => super.widget as $1;",
+      "}",
+      "",
+      "class ${1:MyWidget} extends RStoreWidget<_$1Store> {",
+      "\tconst $1({",
+      "\t\tKey? key,",
+      "\t}) : super(key: key);",
+      "",
+      "\t@override",
+      "\tWidget build(BuildContext context, _$1Store store) {",
+      "\t\treturn Container($0);",
+      "\t}",
+      "",
+      "\t@override",
+      "\t_$1Store createRStore() => _$1Store();",
+      "}",
+      "",
+    ]
+  }
+}
+```
+
 ## Built upon
 
 Под капотом это использует обычную механику Flatter`а:
