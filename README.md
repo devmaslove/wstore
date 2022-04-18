@@ -247,6 +247,58 @@ class _MyAppStore extends RStore {
 
 С помощью `compose` можно вычислять, например, сумму массива или мапить элементы.
 
+## RStoreWidget
+
+Для удобства создания виджетов со сторой сделан класс `RStoreWidget`.
+
+Когда `RStore` создается через него, то она дополнительно получает доступ к этому виджету
+`RStore.widget`, к его контексту `RStore.context` и к его максимальным размерам `RStore.constraints`.
+Также пробрасывается вниз по дереву через `RStoreProvider`.
+
+Просто немного удобства, чтобы сразу в сторе иметь доступ ко входящим параметрам виджета, к
+его калбекам, чтобы в зависимости от constraints делать какую-то логику, обращаться к текущему
+контексту. Иначе пришлось бы это всё руками пробрасывать.
+
+Чтобы было ещё удобнее с этим работать рекомендую добавить сниппеты кода:
+
+### Android Studio - Life Template
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:reactive_store/reactive_store.dart';
+
+class $STORE_NAME$ extends RStore {
+  static $STORE_NAME$ of(BuildContext context) {
+    return RStoreProvider.of<$STORE_NAME$>(context);
+  }
+
+  @override
+  $WIDGET_NAME$ get widget => super.widget as $WIDGET_NAME$;
+}
+
+class $NAME$ extends RStoreWidget<$STORE_NAME$> {
+  const $WIDGET_NAME$({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, $STORE_NAME$ store) {
+    return Container($END$);
+  }
+
+  @override
+  $STORE_NAME$ createRStore() => $STORE_NAME$();
+}
+```
+
+Где:
+
+- `Applicable context` - равно `Applicable in Dart: top-level.`
+- `NAME` - начальная точка
+- `WIDGET_NAME` - равно `NAME` + skip if defined
+- `STORE_NAME` - равно `regularExpression(concat("_", WIDGET_NAME, "Store"), "^__", "_")` + skip if defined
+- `END` - конечная точка
+
 ## Built upon
 
 Под капотом это использует обычную механику Flatter`а:

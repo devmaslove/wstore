@@ -171,7 +171,6 @@ abstract class RStoreWidget<T extends RStore> extends StatefulWidget {
 
   /// Will be called once after the widget has been mounted to RStore.
   @protected
-  @mustCallSuper
   initRStore(T store) {}
 
   @override
