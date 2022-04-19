@@ -283,12 +283,12 @@ class $NAME$ extends RStoreWidget<$STORE_NAME$> {
   }) : super(key: key);
 
   @override
+  $STORE_NAME$ createRStore() => $STORE_NAME$();
+
+  @override
   Widget build(BuildContext context, $STORE_NAME$ store) {
     return Container($END$);
   }
-
-  @override
-  $STORE_NAME$ createRStore() => $STORE_NAME$();
 }
 ```
 
@@ -331,12 +331,12 @@ and then select the Dart language.
       "\t}) : super(key: key);",
       "",
       "\t@override",
+      "\t_$1Store createRStore() => _$1Store();",
+      "",
+      "\t@override",
       "\tWidget build(BuildContext context, _$1Store store) {",
       "\t\treturn Container($0);",
       "\t}",
-      "",
-      "\t@override",
-      "\t_$1Store createRStore() => _$1Store();",
       "}",
       "",
     ]
