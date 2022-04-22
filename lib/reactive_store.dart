@@ -44,13 +44,20 @@ class RStore {
   }
 
   RStoreWidget get widget {
-    if (_context == null) throw RStoreWidgetNotFoundError("Widget");
+    if (_widget == null) throw RStoreWidgetNotFoundError("Widget");
     return _widget!;
   }
 
   BoxConstraints get constraints {
-    if (_context == null) throw RStoreWidgetNotFoundError("Constraints");
+    if (_constraints == null) throw RStoreWidgetNotFoundError("Constraints");
     return _constraints!;
+  }
+
+  Orientation get orientation {
+    if (_constraints == null) throw RStoreWidgetNotFoundError("Orientation");
+    return _constraints!.maxWidth > _constraints!.maxHeight
+        ? Orientation.landscape
+        : Orientation.portrait;
   }
 
   /// Creates a reactive store.
