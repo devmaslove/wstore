@@ -115,7 +115,10 @@ class RStore {
     if (periodic) {
       _timers[timerId] = Timer.periodic(duration, (_) => onTimer());
     } else {
-      _timers[timerId] = Timer(duration, onTimer);
+      _timers[timerId] = Timer(duration, () {
+        killTimer(timerId: timerId);
+        onTimer();
+      });
     }
   }
 
