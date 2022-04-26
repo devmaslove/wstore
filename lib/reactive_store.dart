@@ -26,8 +26,8 @@ List<dynamic> _cloneWatchList(final List<dynamic> watchList) {
 }
 
 class RStore {
-  late final StreamController _controllerWatchers;
-  late final Stream _streamWatchers;
+  late final StreamController<bool> _controllerWatchers;
+  late final Stream<bool> _streamWatchers;
   late final StreamController<List<String>> _controllerTags;
   late final Stream<List<String>> _streamTags;
   final Map<String, dynamic> _composedValues = {};
@@ -130,7 +130,7 @@ class RStore {
   @protected
   void notifyChangeStore() {
     _checkChangeComposed();
-    _controllerWatchers.add(this);
+    _controllerWatchers.add(true);
   }
 
   /// Notifying builders with tags that the store has been updated and need
@@ -284,7 +284,9 @@ class _InheritedRStore<T extends RStore> extends InheritedWidget {
   }) : super(key: key, child: child);
 
   @override
-  bool updateShouldNotify(_InheritedRStore<T> oldWidget) => (oldWidget != this);
+  bool updateShouldNotify(_InheritedRStore<T> oldWidget) {
+    return oldWidget.store != store;
+  }
 }
 
 /// RStoreTagBuilder allows you to create widgets that can be updated manually
@@ -418,8 +420,11 @@ class RStoreBuilder extends StatelessWidget {
 }
 
 class RStoreValueBuilder<V> extends StatelessWidget {
-  final Widget Function(BuildContext context, V watchVariable, Widget? child)
-      builder;
+  final Widget Function(
+    BuildContext context,
+    V watchVariable,
+    Widget? child,
+  ) builder;
   final V Function() watch;
   final RStore store;
 
@@ -476,8 +481,11 @@ class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
 }
 
 class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
-  final Widget Function(BuildContext context, V watchVariable, Widget? child)
-      builder;
+  final Widget Function(
+    BuildContext context,
+    V watchVariable,
+    Widget? child,
+  ) builder;
   final V Function(T store) watch;
 
   /// The child widget to pass to the builder, should not be rebuilt
@@ -505,7 +513,7 @@ class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
 }
 
 class _ReactiveWidget extends StatefulWidget {
-  final Stream stream;
+  final Stream<bool> stream;
   final List<dynamic> Function() watch;
   final Widget Function(BuildContext context, Widget? child) builder;
   final Widget? child;
@@ -523,7 +531,7 @@ class _ReactiveWidget extends StatefulWidget {
 }
 
 class _ReactiveWidgetState extends State<_ReactiveWidget> {
-  late StreamSubscription _setStoreSubscription;
+  late StreamSubscription<bool> _setStoreSubscription;
   late List<dynamic> _lastWatch;
 
   @override
