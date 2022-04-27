@@ -38,26 +38,16 @@ class RStore {
   RStoreWidget? _widget;
   BoxConstraints? _constraints;
 
+  @protected
   BuildContext get context {
     if (_context == null) throw RStoreWidgetNotFoundError("Context");
     return _context!;
   }
 
+  @protected
   RStoreWidget get widget {
     if (_widget == null) throw RStoreWidgetNotFoundError("Widget");
     return _widget!;
-  }
-
-  BoxConstraints get constraints {
-    if (_constraints == null) throw RStoreWidgetNotFoundError("Constraints");
-    return _constraints!;
-  }
-
-  Orientation get orientation {
-    if (_constraints == null) throw RStoreWidgetNotFoundError("Orientation");
-    return _constraints!.maxWidth > _constraints!.maxHeight
-        ? Orientation.landscape
-        : Orientation.portrait;
   }
 
   /// Creates a reactive store.
@@ -142,9 +132,8 @@ class RStore {
 
   @mustCallSuper
   void dispose() {
-    // clear widget, context and constraints
+    // clear widget, context
     _context = null;
-    _constraints = null;
     _widget = null;
     // clear all timers
     _timers.forEach((_, timer) {
@@ -248,6 +237,36 @@ class RStoreProvider<T extends RStore> extends StatefulWidget {
       return (widget as _InheritedRStore<T>).store;
     }
   }
+
+  static BoxConstraints widgetConstraintsOf<T extends RStore>(
+    BuildContext context,
+  ) {
+    var widget =
+        context.dependOnInheritedWidgetOfExactType<_InheritedRStore<T>>();
+    if (widget == null) {
+      throw RStoreProviderNotFoundError(T, context.widget.runtimeType);
+    } else {
+      BoxConstraints? constraints = widget.store._constraints;
+      if (constraints == null) throw RStoreWidgetNotFoundError("Constraints");
+      return constraints;
+    }
+  }
+
+  static Orientation widgetOrientationOf<T extends RStore>(
+    BuildContext context,
+  ) {
+    var widget =
+        context.dependOnInheritedWidgetOfExactType<_InheritedRStore<T>>();
+    if (widget == null) {
+      throw RStoreProviderNotFoundError(T, context.widget.runtimeType);
+    } else {
+      BoxConstraints? constraints = widget.store._constraints;
+      if (constraints == null) throw RStoreWidgetNotFoundError("Orientation");
+      return constraints.maxWidth > constraints.maxHeight
+          ? Orientation.landscape
+          : Orientation.portrait;
+    }
+  }
 }
 
 class _RStoreProviderState<T extends RStore> extends State<RStoreProvider<T>> {
@@ -285,7 +304,8 @@ class _InheritedRStore<T extends RStore> extends InheritedWidget {
 
   @override
   bool updateShouldNotify(_InheritedRStore<T> oldWidget) {
-    return oldWidget.store != store;
+    return oldWidget.store != store ||
+        oldWidget.store._constraints != store._constraints;
   }
 }
 
