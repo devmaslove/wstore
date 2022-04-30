@@ -36,7 +36,6 @@ class RStore {
   final Map<int, Timer> _timers = {};
   BuildContext? _context;
   RStoreWidget? _widget;
-  BoxConstraints? _constraints;
 
   @protected
   BuildContext get context {
@@ -198,13 +197,13 @@ class _RStoreWidgetState<T extends RStore> extends State<RStoreWidget<T>> {
       builder: (BuildContext context, BoxConstraints constraints) {
         store._widget = widget;
         store._context = context;
-        store._constraints = constraints;
         if (!initStore) {
           initStore = true;
           widget.initRStore(store);
         }
         return _InheritedRStore<T>(
           store: store,
+          constraints: constraints,
           child: widget.build(context, store),
         );
       },
@@ -246,9 +245,7 @@ class RStoreProvider<T extends RStore> extends StatefulWidget {
     if (widget == null) {
       throw RStoreProviderNotFoundError(T, context.widget.runtimeType);
     } else {
-      BoxConstraints? constraints = widget.store._constraints;
-      if (constraints == null) throw RStoreWidgetNotFoundError("Constraints");
-      return constraints;
+      return widget.constraints;
     }
   }
 
@@ -260,9 +257,7 @@ class RStoreProvider<T extends RStore> extends StatefulWidget {
     if (widget == null) {
       throw RStoreProviderNotFoundError(T, context.widget.runtimeType);
     } else {
-      BoxConstraints? constraints = widget.store._constraints;
-      if (constraints == null) throw RStoreWidgetNotFoundError("Orientation");
-      return constraints.maxWidth > constraints.maxHeight
+      return widget.constraints.maxWidth > widget.constraints.maxHeight
           ? Orientation.landscape
           : Orientation.portrait;
     }
@@ -286,26 +281,31 @@ class _RStoreProviderState<T extends RStore> extends State<RStoreProvider<T>> {
 
   @override
   Widget build(BuildContext context) {
-    return _InheritedRStore<T>(
-      store: store,
-      child: widget.child,
-    );
+    return LayoutBuilder(builder: (context, constraints) {
+      store._context = context;
+      return _InheritedRStore<T>(
+        store: store,
+        constraints: constraints,
+        child: widget.child,
+      );
+    });
   }
 }
 
 class _InheritedRStore<T extends RStore> extends InheritedWidget {
   final T store;
+  final BoxConstraints constraints;
 
   const _InheritedRStore({
     Key? key,
     required Widget child,
     required this.store,
+    required this.constraints,
   }) : super(key: key, child: child);
 
   @override
   bool updateShouldNotify(_InheritedRStore<T> oldWidget) {
-    return oldWidget.store != store ||
-        oldWidget.store._constraints != store._constraints;
+    return oldWidget.constraints != constraints;
   }
 }
 
