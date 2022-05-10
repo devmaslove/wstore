@@ -3,7 +3,7 @@
 RStore - это библиотека для state manage во Flutter.
 Добавляем реактивность в наши виджеты.
 
-## Idea
+## Идея
 
 Основная идея в том чтобы разделить представление от логики
 по типу того как это делается во Vue.js: шаблон занимается отображением,
@@ -202,16 +202,30 @@ RStoreValueBuilder<int>(
   store: store,
   watch: () => store.counter,
   child: Text('Button has been pressed:'), // not be rebuilt
-  builder: (context, counter, child) {
+  builder: (_, counter, child) {
     return Column(
       children: [
         child,
-        Text(
-          '$counter',
-          style: Theme.of(context).textTheme.headline4,
-        ),
+        Text('$counter'),
       ],
     );
+  },
+),
+```
+
+В билдере межно задать функцию `onChange` которая вызывается при изменении
+watch листа перед `build` (не вызывается при инициализации):
+
+```dart
+RStoreValueBuilder<int>(
+  store: store,
+  watch: () => store.counter,
+  onChange: (context, counter) {
+    // делаем тут что-то полезное
+    // например, Navigator.pop(context)...
+  },
+  builder: (__, counter, _) {
+    return Text('$counter');
   },
 ),
 ```
