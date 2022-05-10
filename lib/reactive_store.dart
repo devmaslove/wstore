@@ -313,6 +313,7 @@ class _InheritedRStore<T extends RStore> extends InheritedWidget {
 /// by tag (see RStore.updateBuildersByTags)
 class RStoreTagBuilder extends StatelessWidget {
   final Widget Function(BuildContext context, Widget? child) builder;
+  final Widget Function(BuildContext context)? onChange;
   final String tag;
   final RStore store;
 
@@ -322,6 +323,7 @@ class RStoreTagBuilder extends StatelessWidget {
   const RStoreTagBuilder({
     Key? key,
     required this.builder,
+    this.onChange,
     required this.store,
     required this.tag,
     this.child,
@@ -332,6 +334,7 @@ class RStoreTagBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ReactiveTagWidget(
       builder: builder,
+      onChange: (context) => onChange?.call(context),
       child: child,
       tag: tag,
       stream: store._streamTags,
@@ -343,6 +346,7 @@ class RStoreTagBuilder extends StatelessWidget {
 /// manually by tag (see RStore.updateBuildersByTags)
 class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
   final Widget Function(BuildContext context, T store, Widget? child) builder;
+  final Widget Function(BuildContext context, T store)? onChange;
   final String tag;
 
   /// The child widget to pass to the builder, should not be rebuilt
@@ -351,6 +355,7 @@ class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
   const RStoreContextTagBuilder({
     Key? key,
     required this.builder,
+    this.onChange,
     required this.tag,
     this.child,
   }) : super(key: key);
@@ -361,6 +366,9 @@ class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
     return _ReactiveTagWidget(
       builder: (context, child) {
         return builder(context, store, child);
+      },
+      onChange: (context) {
+        onChange?.call(context, store);
       },
       child: child,
       tag: tag,
@@ -373,11 +381,13 @@ class _ReactiveTagWidget extends StatefulWidget {
   final Stream<List<String>> stream;
   final String tag;
   final Widget Function(BuildContext context, Widget? child) builder;
+  final void Function(BuildContext context) onChange;
   final Widget? child;
 
   const _ReactiveTagWidget({
     required this.stream,
     required this.builder,
+    required this.onChange,
     required this.tag,
     required this.child,
     Key? key,
@@ -396,7 +406,8 @@ class _ReactiveTagWidgetState extends State<_ReactiveTagWidget> {
     _changeStoreSubscription = widget.stream.listen((tags) {
       if (mounted) {
         if (tags.contains(widget.tag)) {
-          setState(() {});
+          if (mounted) widget.onChange(context);
+          if (mounted) setState(() {});
         }
       }
     });
@@ -414,6 +425,7 @@ class _ReactiveTagWidgetState extends State<_ReactiveTagWidget> {
 
 class RStoreBuilder extends StatelessWidget {
   final Widget Function(BuildContext context, Widget? child) builder;
+  final void Function(BuildContext context)? onChange;
   final List<dynamic> Function() watch;
   final RStore store;
 
@@ -423,6 +435,7 @@ class RStoreBuilder extends StatelessWidget {
   const RStoreBuilder({
     Key? key,
     required this.builder,
+    this.onChange,
     required this.store,
     required this.watch,
     this.child,
@@ -432,6 +445,7 @@ class RStoreBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ReactiveWidget(
       builder: builder,
+      onChange: (context) => onChange?.call(context),
       child: child,
       watch: watch,
       stream: store._streamWatchers,
@@ -445,6 +459,7 @@ class RStoreValueBuilder<V> extends StatelessWidget {
     V watchVariable,
     Widget? child,
   ) builder;
+  final void Function(BuildContext context, V watchVariable)? onChange;
   final V Function() watch;
   final RStore store;
 
@@ -454,6 +469,7 @@ class RStoreValueBuilder<V> extends StatelessWidget {
   const RStoreValueBuilder({
     Key? key,
     required this.builder,
+    this.onChange,
     required this.store,
     required this.watch,
     this.child,
@@ -465,6 +481,7 @@ class RStoreValueBuilder<V> extends StatelessWidget {
       builder: (context, child) {
         return builder(context, watch(), child);
       },
+      onChange: (context) => onChange?.call(context, watch()),
       child: child,
       watch: () => [watch()],
       stream: store._streamWatchers,
@@ -474,6 +491,7 @@ class RStoreValueBuilder<V> extends StatelessWidget {
 
 class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
   final Widget Function(BuildContext context, T store, Widget? child) builder;
+  final void Function(BuildContext context, T store)? onChange;
   final List<dynamic> Function(T store) watch;
 
   /// The child widget to pass to the builder, should not be rebuilt
@@ -482,6 +500,7 @@ class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
   const RStoreContextBuilder({
     Key? key,
     required this.builder,
+    this.onChange,
     required this.watch,
     this.child,
   }) : super(key: key);
@@ -493,6 +512,7 @@ class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
       builder: (context, child) {
         return builder(context, store, child);
       },
+      onChange: (context) => onChange?.call(context, store),
       child: child,
       watch: () => watch(store),
       stream: store._streamWatchers,
@@ -506,6 +526,7 @@ class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
     V watchVariable,
     Widget? child,
   ) builder;
+  final void Function(BuildContext context, V watchVariable)? onChange;
   final V Function(T store) watch;
 
   /// The child widget to pass to the builder, should not be rebuilt
@@ -514,6 +535,7 @@ class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
   const RStoreContextValueBuilder({
     Key? key,
     required this.builder,
+    this.onChange,
     required this.watch,
     this.child,
   }) : super(key: key);
@@ -525,6 +547,7 @@ class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
       builder: (context, child) {
         return builder(context, watch(store), child);
       },
+      onChange: (context) => onChange?.call(context, watch(store)),
       child: child,
       watch: () => [watch(store)],
       stream: store._streamWatchers,
@@ -536,11 +559,13 @@ class _ReactiveWidget extends StatefulWidget {
   final Stream<bool> stream;
   final List<dynamic> Function() watch;
   final Widget Function(BuildContext context, Widget? child) builder;
+  final void Function(BuildContext context) onChange;
   final Widget? child;
 
   const _ReactiveWidget({
     required this.stream,
     required this.builder,
+    required this.onChange,
     required this.watch,
     required this.child,
     Key? key,
@@ -563,7 +588,8 @@ class _ReactiveWidgetState extends State<_ReactiveWidget> {
       if (_lastWatch.isNotEmpty && mounted) {
         List<dynamic> nowWatch = widget.watch();
         if (_isWatchValuesUpdates(_lastWatch, nowWatch)) {
-          setState(() => _lastWatch = _cloneWatchList(nowWatch));
+          if (mounted) widget.onChange(context);
+          if (mounted) setState(() => _lastWatch = _cloneWatchList(nowWatch));
         }
       }
     });
