@@ -4,7 +4,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-// идея взята из https://pub.dev/packages/consumer
+// идея навеяна пакетом https://pub.dev/packages/consumer
 
 bool _isWatchValuesUpdates(
   final List<dynamic> oldWatch,
@@ -312,7 +312,7 @@ class _InheritedRStore<T extends RStore> extends InheritedWidget {
 /// RStoreTagBuilder allows you to create widgets that can be updated manually
 /// by tag (see RStore.updateBuildersByTags)
 class RStoreTagBuilder extends StatelessWidget {
-  final Widget Function(BuildContext context, Widget? child) builder;
+  final Widget Function(BuildContext context, Widget? child)? builder;
   final Widget Function(BuildContext context)? onChange;
   final String tag;
   final RStore store;
@@ -322,7 +322,7 @@ class RStoreTagBuilder extends StatelessWidget {
 
   const RStoreTagBuilder({
     Key? key,
-    required this.builder,
+    this.builder,
     this.onChange,
     required this.store,
     required this.tag,
@@ -333,7 +333,12 @@ class RStoreTagBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _ReactiveTagWidget(
-      builder: builder,
+      builder: (context, child) {
+        if (builder == null && child == null) {
+          return const SizedBox.shrink();
+        }
+        return builder?.call(context, child) ?? child!;
+      },
       onChange: (context) => onChange?.call(context),
       child: child,
       tag: tag,
@@ -345,7 +350,7 @@ class RStoreTagBuilder extends StatelessWidget {
 /// RStoreContextTagBuilder allows you to create widgets that can be updated
 /// manually by tag (see RStore.updateBuildersByTags)
 class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
-  final Widget Function(BuildContext context, T store, Widget? child) builder;
+  final Widget Function(BuildContext context, T store, Widget? child)? builder;
   final Widget Function(BuildContext context, T store)? onChange;
   final String tag;
 
@@ -354,7 +359,7 @@ class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
 
   const RStoreContextTagBuilder({
     Key? key,
-    required this.builder,
+    this.builder,
     this.onChange,
     required this.tag,
     this.child,
@@ -365,7 +370,10 @@ class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
     final store = RStoreProvider.of<T>(context);
     return _ReactiveTagWidget(
       builder: (context, child) {
-        return builder(context, store, child);
+        if (builder == null && child == null) {
+          return const SizedBox.shrink();
+        }
+        return builder?.call(context, store, child) ?? child!;
       },
       onChange: (context) {
         onChange?.call(context, store);
@@ -424,7 +432,7 @@ class _ReactiveTagWidgetState extends State<_ReactiveTagWidget> {
 }
 
 class RStoreBuilder extends StatelessWidget {
-  final Widget Function(BuildContext context, Widget? child) builder;
+  final Widget Function(BuildContext context, Widget? child)? builder;
   final void Function(BuildContext context)? onChange;
   final List<dynamic> Function() watch;
   final RStore store;
@@ -434,7 +442,7 @@ class RStoreBuilder extends StatelessWidget {
 
   const RStoreBuilder({
     Key? key,
-    required this.builder,
+    this.builder,
     this.onChange,
     required this.store,
     required this.watch,
@@ -444,7 +452,12 @@ class RStoreBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _ReactiveWidget(
-      builder: builder,
+      builder: (context, child) {
+        if (builder == null && child == null) {
+          return const SizedBox.shrink();
+        }
+        return builder?.call(context, child) ?? child!;
+      },
       onChange: (context) => onChange?.call(context),
       child: child,
       watch: watch,
@@ -458,7 +471,7 @@ class RStoreValueBuilder<V> extends StatelessWidget {
     BuildContext context,
     V watchVariable,
     Widget? child,
-  ) builder;
+  )? builder;
   final void Function(BuildContext context, V watchVariable)? onChange;
   final V Function() watch;
   final RStore store;
@@ -468,7 +481,7 @@ class RStoreValueBuilder<V> extends StatelessWidget {
 
   const RStoreValueBuilder({
     Key? key,
-    required this.builder,
+    this.builder,
     this.onChange,
     required this.store,
     required this.watch,
@@ -479,7 +492,10 @@ class RStoreValueBuilder<V> extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ReactiveWidget(
       builder: (context, child) {
-        return builder(context, watch(), child);
+        if (builder == null && child == null) {
+          return const SizedBox.shrink();
+        }
+        return builder?.call(context, watch(), child) ?? child!;
       },
       onChange: (context) => onChange?.call(context, watch()),
       child: child,
@@ -490,7 +506,7 @@ class RStoreValueBuilder<V> extends StatelessWidget {
 }
 
 class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
-  final Widget Function(BuildContext context, T store, Widget? child) builder;
+  final Widget Function(BuildContext context, T store, Widget? child)? builder;
   final void Function(BuildContext context, T store)? onChange;
   final List<dynamic> Function(T store) watch;
 
@@ -499,7 +515,7 @@ class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
 
   const RStoreContextBuilder({
     Key? key,
-    required this.builder,
+    this.builder,
     this.onChange,
     required this.watch,
     this.child,
@@ -510,7 +526,10 @@ class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
     final store = RStoreProvider.of<T>(context);
     return _ReactiveWidget(
       builder: (context, child) {
-        return builder(context, store, child);
+        if (builder == null && child == null) {
+          return const SizedBox.shrink();
+        }
+        return builder?.call(context, store, child) ?? child!;
       },
       onChange: (context) => onChange?.call(context, store),
       child: child,
@@ -525,7 +544,7 @@ class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
     BuildContext context,
     V watchVariable,
     Widget? child,
-  ) builder;
+  )? builder;
   final void Function(BuildContext context, V watchVariable)? onChange;
   final V Function(T store) watch;
 
@@ -534,7 +553,7 @@ class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
 
   const RStoreContextValueBuilder({
     Key? key,
-    required this.builder,
+    this.builder,
     this.onChange,
     required this.watch,
     this.child,
@@ -545,7 +564,10 @@ class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
     final store = RStoreProvider.of<T>(context);
     return _ReactiveWidget(
       builder: (context, child) {
-        return builder(context, watch(store), child);
+        if (builder == null && child == null) {
+          return const SizedBox.shrink();
+        }
+        return builder?.call(context, watch(store), child) ?? child!;
       },
       onChange: (context) => onChange?.call(context, watch(store)),
       child: child,
