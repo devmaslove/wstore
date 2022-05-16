@@ -34,14 +34,7 @@ class RStore {
   final Map<String, dynamic> _composedWatchList = {};
   final Map<String, dynamic> _composedWatchFunc = {};
   final Map<int, Timer> _timers = {};
-  BuildContext? _context;
   RStoreWidget? _widget;
-
-  @protected
-  BuildContext get context {
-    if (_context == null) throw RStoreWidgetNotFoundError("Context");
-    return _context!;
-  }
 
   @protected
   RStoreWidget get widget {
@@ -131,8 +124,7 @@ class RStore {
 
   @mustCallSuper
   void dispose() {
-    // clear widget, context
-    _context = null;
+    // clear widget
     _widget = null;
     // clear all timers
     _timers.forEach((_, timer) {
@@ -196,7 +188,6 @@ class _RStoreWidgetState<T extends RStore> extends State<RStoreWidget<T>> {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         store._widget = widget;
-        store._context = context;
         if (!initStore) {
           initStore = true;
           widget.initRStore(store);
@@ -282,7 +273,6 @@ class _RStoreProviderState<T extends RStore> extends State<RStoreProvider<T>> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      store._context = context;
       return _InheritedRStore<T>(
         store: store,
         constraints: constraints,
