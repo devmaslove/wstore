@@ -333,6 +333,7 @@ class RStoreTagBuilder extends StatelessWidget {
       child: child,
       tag: tag,
       stream: store._streamTags,
+      noRebuild: builder == null,
     );
   }
 }
@@ -371,6 +372,7 @@ class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
       child: child,
       tag: tag,
       stream: store._streamTags,
+      noRebuild: builder == null,
     );
   }
 }
@@ -381,6 +383,7 @@ class _ReactiveTagWidget extends StatefulWidget {
   final Widget Function(BuildContext context, Widget? child) builder;
   final void Function(BuildContext context) onChange;
   final Widget? child;
+  final bool noRebuild;
 
   const _ReactiveTagWidget({
     required this.stream,
@@ -388,6 +391,7 @@ class _ReactiveTagWidget extends StatefulWidget {
     required this.onChange,
     required this.tag,
     required this.child,
+    required this.noRebuild,
     Key? key,
   }) : super(key: key);
 
@@ -405,7 +409,7 @@ class _ReactiveTagWidgetState extends State<_ReactiveTagWidget> {
       if (mounted) {
         if (tags.contains(widget.tag)) {
           if (mounted) widget.onChange(context);
-          if (mounted) setState(() {});
+          if (mounted && !widget.noRebuild) setState(() {});
         }
       }
     });
@@ -452,6 +456,7 @@ class RStoreBuilder extends StatelessWidget {
       child: child,
       watch: watch,
       stream: store._streamWatchers,
+      noRebuild: builder == null,
     );
   }
 }
@@ -491,6 +496,7 @@ class RStoreValueBuilder<V> extends StatelessWidget {
       child: child,
       watch: () => [watch()],
       stream: store._streamWatchers,
+      noRebuild: builder == null,
     );
   }
 }
@@ -525,6 +531,7 @@ class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
       child: child,
       watch: () => watch(store),
       stream: store._streamWatchers,
+      noRebuild: builder == null,
     );
   }
 }
@@ -563,6 +570,7 @@ class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
       child: child,
       watch: () => [watch(store)],
       stream: store._streamWatchers,
+      noRebuild: builder == null,
     );
   }
 }
@@ -573,6 +581,7 @@ class _ReactiveWidget extends StatefulWidget {
   final Widget Function(BuildContext context, Widget? child) builder;
   final void Function(BuildContext context) onChange;
   final Widget? child;
+  final bool noRebuild;
 
   const _ReactiveWidget({
     required this.stream,
@@ -580,6 +589,7 @@ class _ReactiveWidget extends StatefulWidget {
     required this.onChange,
     required this.watch,
     required this.child,
+    required this.noRebuild,
     Key? key,
   }) : super(key: key);
 
@@ -601,7 +611,11 @@ class _ReactiveWidgetState extends State<_ReactiveWidget> {
         List<dynamic> nowWatch = widget.watch();
         if (_isWatchValuesUpdates(_lastWatch, nowWatch)) {
           if (mounted) widget.onChange(context);
-          if (mounted) setState(() => _lastWatch = _cloneWatchList(nowWatch));
+          if (mounted && !widget.noRebuild) {
+            setState(() {
+              _lastWatch = _cloneWatchList(nowWatch);
+            });
+          }
         }
       }
     });
