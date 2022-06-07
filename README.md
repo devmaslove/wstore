@@ -314,7 +314,7 @@ class $NAME$ extends RStoreWidget<$STORE_NAME$> {
 - `Applicable context` - равно `Applicable in Dart: top-level.`
 - `NAME` - начальная точка
 - `WIDGET_NAME` - равно `NAME` + skip if defined
-- `STORE_NAME` - равно `regularExpression(concat("_", WIDGET_NAME, "Store"), "^__", "_")` + skip if defined
+- `STORE_NAME` - равно `regularExpression(concat(WIDGET_NAME, "Store"), "^__", "_")` + skip if defined
 - `END` - конечная точка
 
 ### VS Code - Code snippet
@@ -332,25 +332,25 @@ and then select the Dart language.
       "import 'package:flutter/material.dart';",
       "import 'package:reactive_store/reactive_store.dart';",
       "",
-      "class _$1Store extends RStore {",
-      "\tstatic _$1Store of(BuildContext context) {",
-      "\t\treturn RStoreProvider.of<_$1Store>(context);",
+      "class $1Store extends RStore {",
+      "\tstatic $1Store of(BuildContext context) {",
+      "\t\treturn RStoreProvider.of<$1Store>(context);",
       "\t}",
       "",
       "\t@override",
       "\t$1 get widget => super.widget as $1;",
       "}",
       "",
-      "class ${1:MyWidget} extends RStoreWidget<_$1Store> {",
+      "class ${1:MyWidget} extends RStoreWidget<$1Store> {",
       "\tconst $1({",
       "\t\tKey? key,",
       "\t}) : super(key: key);",
       "",
       "\t@override",
-      "\t_$1Store createRStore() => _$1Store();",
+      "\t$1Store createRStore() => $1Store();",
       "",
       "\t@override",
-      "\tWidget build(BuildContext context, _$1Store store) {",
+      "\tWidget build(BuildContext context, $1Store store) {",
       "\t\treturn Container($0);",
       "\t}",
       "}",
