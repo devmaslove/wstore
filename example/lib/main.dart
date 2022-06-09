@@ -5,9 +5,9 @@ import 'package:reactive_store/reactive_store.dart';
 
 // https://medium.com/flutter-community/flutter-oneyearchallenge-scoped-model-vs-bloc-pattern-vs-states-rebuilder-23ba11813a4f
 
-// void main() {
-//   runApp(const MyApp());
-// }
+void main() {
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -18,6 +18,7 @@ class MyApp extends StatelessWidget {
       title: 'RStore builder',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: const MainPage(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -87,9 +88,8 @@ class MainPageContent extends StatelessWidget {
           child: RStoreContextBuilder<MainPageStore>(
             watch: (store) => [store.items],
             builder: (context, store, _) => store.items.isEmpty
-                ? Center(
-                    child: Container(),
-                    // child: CircularProgressIndicator(),
+                ? const Center(
+                    child: CircularProgressIndicator(),
                   )
                 : ListView.builder(
                     scrollDirection: Axis.horizontal,
@@ -133,15 +133,16 @@ class MainPageContent extends StatelessWidget {
                     width: 200,
                     height: 200,
                     child: RStoreValueBuilder<Item>(
-                        store: store,
-                        watch: () => store.items[store.detailedIndex],
-                        builder: (context, item, _) {
-                          return ItemCard(
-                            item: item,
-                            color: store.detailedColor,
-                            onTap: () => store.increment(),
-                          );
-                        }),
+                      store: store,
+                      watch: () => store.items[store.detailedIndex],
+                      builder: (context, item, _) {
+                        return ItemCard(
+                          item: item,
+                          color: store.detailedColor,
+                          onTap: () => store.increment(),
+                        );
+                      },
+                    ),
                   ),
           ),
         ),
