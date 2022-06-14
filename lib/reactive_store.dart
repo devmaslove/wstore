@@ -85,7 +85,7 @@ class RStore {
   /// Timers are automatically canceled when RStore.dispose
   /// or when created a new one with same timerId
   /// (сan be used to set debounce time e.g.)
-  setTimer({
+  void setTimer({
     required final VoidCallback onTimer,
     required final Duration duration,
     final int timerId = 0,
@@ -104,7 +104,7 @@ class RStore {
     }
   }
 
-  killTimer({final int timerId = 0}) {
+  void killTimer({final int timerId = 0}) {
     _timers.remove(timerId)?.cancel();
   }
 
@@ -133,7 +133,7 @@ class RStore {
     _timers.clear();
   }
 
-  _checkChangeComposed() {
+  void _checkChangeComposed() {
     final List<String> removedKeys = [];
     _composedWatchList.forEach((key, value) {
       List<dynamic> oldWatch = value;
@@ -161,7 +161,7 @@ abstract class RStoreWidget<T extends RStore> extends StatefulWidget {
 
   /// Will be called once after the widget has been mounted to RStore.
   @protected
-  initRStore(T store) {}
+  void initRStore(T store) {}
 
   @override
   State<RStoreWidget<T>> createState() => _RStoreWidgetState<T>();
