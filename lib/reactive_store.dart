@@ -4,6 +4,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'src/error.dart';
+
+export 'src/error.dart';
+
 // идея навеяна пакетом https://pub.dev/packages/consumer
 
 bool _isWatchValuesUpdates(
@@ -38,7 +42,9 @@ class RStore {
 
   @protected
   RStoreWidget get widget {
-    if (_widget == null) throw RStoreWidgetNotFoundError("Widget");
+    if (_widget == null) {
+      throw RStoreNotFoundError(RStore, RStoreWidget, "Widget");
+    }
     return _widget!;
   }
 
@@ -222,7 +228,7 @@ class RStoreProvider<T extends RStore> extends StatefulWidget {
         .getElementForInheritedWidgetOfExactType<_InheritedRStore<T>>()
         ?.widget;
     if (widget == null) {
-      throw RStoreProviderNotFoundError(T, context.widget.runtimeType);
+      throw RStoreNotFoundError(T, context.widget.runtimeType, '');
     } else {
       return (widget as _InheritedRStore<T>).store;
     }
@@ -234,7 +240,7 @@ class RStoreProvider<T extends RStore> extends StatefulWidget {
     var widget =
         context.dependOnInheritedWidgetOfExactType<_InheritedRStore<T>>();
     if (widget == null) {
-      throw RStoreProviderNotFoundError(T, context.widget.runtimeType);
+      throw RStoreNotFoundError(T, context.widget.runtimeType, '');
     } else {
       return widget.constraints;
     }
@@ -246,7 +252,7 @@ class RStoreProvider<T extends RStore> extends StatefulWidget {
     var widget =
         context.dependOnInheritedWidgetOfExactType<_InheritedRStore<T>>();
     if (widget == null) {
-      throw RStoreProviderNotFoundError(T, context.widget.runtimeType);
+      throw RStoreNotFoundError(T, context.widget.runtimeType, '');
     } else {
       return widget.constraints.maxWidth > widget.constraints.maxHeight
           ? Orientation.landscape
@@ -629,53 +635,4 @@ class _ReactiveWidgetState extends State<_ReactiveWidget> {
 
   @override
   Widget build(BuildContext context) => widget.builder(context, widget.child);
-}
-
-/// The error that will be thrown if the RStore cannot be found in the
-/// Widget tree.
-class RStoreProviderNotFoundError extends Error {
-  /// The type of the value being retrieved
-  final Type valueType;
-
-  /// The type of the Widget requesting the value
-  final Type widgetType;
-
-  RStoreProviderNotFoundError(this.valueType, this.widgetType);
-
-  @override
-  String toString() {
-    return '''Error: Could not find the correct RStoreProvider<$valueType> or RStoreWidget<$valueType> above this $widgetType Widget.
-
-Make sure that $widgetType is under your RStoreProvider<$valueType> or RStoreWidget<$valueType>.
-
-To fix, please add to top of your widget tree:
-  RStoreProvider<$valueType>(
-   create: () => $valueType(),
-   child: $widgetType(...
-
-or add to top child: YourWidget where:
-  class YourWidget extends RStoreWidget<$valueType> {
-   ...
-''';
-  }
-}
-
-class RStoreWidgetNotFoundError extends Error {
-  /// The type of the value being retrieved
-  final String valueType;
-
-  RStoreWidgetNotFoundError(this.valueType);
-
-  @override
-  String toString() {
-    return '''Error: Could not find ${valueType.toLowerCase()} for this RStore.
-
-$valueType sets only in RStoreWidget.
-Make sure that RStore is under your RStoreWidget.
-To fix, please create RStore in RStoreWidget.
-
-Or RStoreWidget has been unmounted, so the RState no longer has a ${valueType.toLowerCase()}
-(${valueType.toLowerCase()} called after RState.dispose).
-''';
-  }
 }
