@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'provider.dart';
 import 'store.dart';
 
 /// RStoreTagBuilder allows you to create widgets that can be updated manually
@@ -62,7 +61,7 @@ class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = RStoreProvider.of<T>(context);
+    final store = RStoreWidget.of<T>(context);
     return ReactiveWidget(
       builder: (context, child) {
         if (builder == null && child == null) {
@@ -175,7 +174,7 @@ class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = RStoreProvider.of<T>(context);
+    final store = RStoreWidget.of<T>(context);
     return ReactiveWidget(
       builder: (context, child) {
         if (builder == null && child == null) {
@@ -214,7 +213,7 @@ class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = RStoreProvider.of<T>(context);
+    final store = RStoreWidget.of<T>(context);
     return ReactiveWidget(
       builder: (context, child) {
         if (builder == null && child == null) {

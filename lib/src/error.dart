@@ -25,18 +25,14 @@ Or RStoreWidget has been unmounted, so the RState no longer has a ${variable.toL
 (${variable.toLowerCase()} called after RState.dispose).
 ''';
     }
-    return '''Error: Could not find the correct RStoreProvider<$valueType> or RStoreWidget<$valueType> above this $widgetType Widget.
+    return '''Error: Could not find the correct RStoreWidget<$valueType> above this $widgetType Widget.
 
-Make sure that $widgetType is under your RStoreProvider<$valueType> or RStoreWidget<$valueType>.
+Make sure that $widgetType is under your RStoreWidget<$valueType>.
 
 To fix, please add to top of your widget tree:
-  RStoreProvider<$valueType>(
-   create: () => $valueType(),
-   child: $widgetType(...
-
-or add to top child: YourWidget where:
-  class YourWidget extends RStoreWidget<$valueType> {
-   ...
+  class YourWidget extends RStoreWidget<$valueType>(
+   $valueType createRStore() => $valueType(),
+   Widget build(context, store) => $widgetType(...
 ''';
   }
 }

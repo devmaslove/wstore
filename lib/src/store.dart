@@ -166,6 +166,45 @@ abstract class RStoreWidget<T extends RStore> extends StatefulWidget {
 
   @override
   State<RStoreWidget<T>> createState() => _RStoreWidgetState<T>();
+
+  /// Obtains the nearest [RStoreWidget] up its widget tree
+  /// and returns its store.
+  static T of<T extends RStore>(BuildContext context) {
+    var widget = context
+        .getElementForInheritedWidgetOfExactType<InheritedRStore<T>>()
+        ?.widget;
+    if (widget == null) {
+      throw RStoreNotFoundError(T, context.widget.runtimeType, '');
+    } else {
+      return (widget as InheritedRStore<T>).store;
+    }
+  }
+
+  static BoxConstraints widgetConstraintsOf<T extends RStore>(
+    BuildContext context,
+  ) {
+    var widget =
+        context.dependOnInheritedWidgetOfExactType<InheritedRStore<T>>();
+    if (widget == null) {
+      throw RStoreNotFoundError(T, context.widget.runtimeType, '');
+    } else {
+      return widget.constraints;
+    }
+  }
+
+  static Orientation widgetOrientationOf<T extends RStore>(
+    BuildContext context,
+  ) {
+    var widget =
+        context.dependOnInheritedWidgetOfExactType<InheritedRStore<T>>();
+    if (widget == null) {
+      throw RStoreNotFoundError(T, context.widget.runtimeType, '');
+    } else {
+      return widget.constraints.maxWidth > widget.constraints.maxHeight
+          ? Orientation.landscape
+          : Orientation.portrait;
+    }
+  }
 }
 
 class _RStoreWidgetState<T extends RStore> extends State<RStoreWidget<T>> {
