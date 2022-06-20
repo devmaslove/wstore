@@ -96,6 +96,21 @@ class RStore {
       onTimer: onTimer,
       duration: Duration(milliseconds: milliseconds),
       timerId: timerId,
+      periodic: false,
+    );
+  }
+
+  /// Create new periodic timer
+  ///
+  /// Timers are automatically canceled when RStore.dispose
+  /// or when created a new one with same timerId
+  /// (сan be used to set debounce time e.g.)
+  void setInterval(VoidCallback onTimer, int milliseconds, [int timerId = 0]) {
+    setTimer(
+      onTimer: onTimer,
+      duration: Duration(milliseconds: milliseconds),
+      timerId: timerId,
+      periodic: true,
     );
   }
 
