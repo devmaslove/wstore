@@ -2,50 +2,54 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:reactive_store/reactive_store.dart';
-
-// https://medium.com/flutter-community/flutter-oneyearchallenge-scoped-model-vs-bloc-pattern-vs-states-rebuilder-23ba11813a4f
+import 'package:url_launcher/url_launcher.dart';
 
 class Item {
   int count = 0;
+  final Color color;
+
+  Item(this.color);
 
   static Future<List<Item>> fetchItems() async {
-    return List<Item>.generate(15, (index) => Item());
+    return List<Item>.generate(15, (index) => Item(_randomColor()));
+  }
+
+  static Color _randomColor() {
+    return Colors.primaries[Random().nextInt(Colors.primaries.length)];
   }
 }
 
 class StatesReBuilderPageStore extends RStore {
   List<Item> items = [];
-  Color detailedColor = Colors.transparent;
   int detailedIndex = -1;
 
-  loadItems() async {
-    items = await Item.fetchItems();
-    notifyChangeStore();
+  loadItems() {
+    setTimeout(() async {
+      items = await Item.fetchItems();
+      notifyChangeStore();
+    }, 2500);
   }
 
-  showDetailed(Color color, int index) {
-    detailedColor = color;
+  showDetailed(int index) {
     detailedIndex = index;
     notifyChangeStore();
   }
 
   increment() {
     int currValue = items[detailedIndex].count;
+    Color currColor = items[detailedIndex].color;
     // recreate new Item - for update watchers
-    Item newItem = Item()..count = currValue + 1;
+    Item newItem = Item(currColor)..count = currValue + 1;
     items[detailedIndex] = newItem;
     notifyChangeStore();
-  }
-
-  Color randomColor() {
-    return Colors.primaries[Random().nextInt(Colors.primaries.length)];
   }
 }
 
 class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
-  const StatesReBuilderPage({
-    Key? key,
-  }) : super(key: key);
+  const StatesReBuilderPage({Key? key}) : super(key: key);
+
+  @override
+  void initRStore(StatesReBuilderPageStore store) => store.loadItems();
 
   @override
   Widget build(BuildContext context, StatesReBuilderPageStore store) {
@@ -65,22 +69,23 @@ class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
                     )
                   : ListView.builder(
                       scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
                       itemCount: items.length,
                       itemBuilder: (context, index) {
-                        Color randColor = store.randomColor();
-                        return SizedBox(
-                          width: 100,
-                          child: RStoreValueBuilder<Item>(
-                            store: store,
-                            watch: () => store.items[index],
-                            builder: (context, item, _) {
-                              return ItemCard(
-                                item: item,
-                                color: randColor,
-                                onTap: () =>
-                                    store.showDetailed(randColor, index),
-                              );
-                            },
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: SizedBox(
+                            width: 100,
+                            child: RStoreValueBuilder<Item>(
+                              store: store,
+                              watch: () => store.items[index],
+                              builder: (context, item, _) {
+                                return ItemCard(
+                                  item: item,
+                                  onTap: () => store.showDetailed(index),
+                                );
+                              },
+                            ),
                           ),
                         );
                       },
@@ -89,17 +94,25 @@ class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
           ),
           const Divider(),
           Center(
-            child: RStoreWatchBuilder(
+            child: RStoreValueBuilder<int>(
               store: store,
-              watch: () => [store.detailedIndex, store.detailedColor],
-              builder: (context, _) => store.detailedIndex < 0
+              watch: () => store.detailedIndex,
+              builder: (context, index, _) => index < 0
                   ? SizedBox(
                       width: 200,
                       height: 200,
-                      child: ItemCard(
-                        item: Item(),
-                        color: store.randomColor(),
-                        onTap: () => store.loadItems(),
+                      child: Container(
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black54),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Select card',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 38),
+                          ),
+                        ),
                       ),
                     )
                   : SizedBox(
@@ -111,13 +124,21 @@ class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
                         builder: (context, item, _) {
                           return ItemCard(
                             item: item,
-                            color: store.detailedColor,
                             onTap: () => store.increment(),
                           );
                         },
                       ),
                     ),
             ),
+          ),
+          const SizedBox(height: 20),
+          OutlinedButton(
+            onPressed: () async {
+              final url = Uri.parse(
+                  'https://medium.com/flutter-community/flutter-oneyearchallenge-scoped-model-vs-bloc-pattern-vs-states-rebuilder-23ba11813a4f');
+              await launchUrl(url, mode: LaunchMode.externalApplication);
+            },
+            child: const Text('More info on medium'),
           ),
         ],
       ),
@@ -130,13 +151,11 @@ class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
 
 class ItemCard extends StatelessWidget {
   final Item item;
-  final Color color;
   final VoidCallback onTap;
 
   const ItemCard({
     Key? key,
     required this.item,
-    required this.color,
     required this.onTap,
   }) : super(key: key);
 
@@ -145,7 +164,7 @@ class ItemCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        color: color,
+        color: item.color,
         child: Center(
           child: Text(
             '${item.count}',
