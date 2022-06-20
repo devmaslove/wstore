@@ -242,31 +242,32 @@ class _RStoreWidgetState<T extends RStore> extends State<RStoreWidget<T>> {
   }
 }
 
-class ReactiveWidget extends StatefulWidget {
+class RStoreBuilder extends StatefulWidget {
   final RStore store;
   final List<dynamic> Function()? watch;
   final String? tag;
-  final Widget Function(BuildContext context, Widget? child) builder;
-  final void Function(BuildContext context) onChange;
-  final Widget? child;
-  final bool noRebuild;
+  final Widget Function(BuildContext context, Widget? child)? builder;
+  final void Function(BuildContext context)? onChange;
 
-  const ReactiveWidget({
+  /// The child widget to pass to the builder, should not be rebuilt
+  final Widget? child;
+
+  const RStoreBuilder({
     required this.store,
-    required this.builder,
-    required this.onChange,
+    this.builder,
+    this.onChange,
     this.watch,
     this.tag,
     this.child,
-    required this.noRebuild,
     Key? key,
-  }) : super(key: key);
+  })  : assert(tag == null || tag.length > 0, 'tag must not be empty string'),
+        super(key: key);
 
   @override
-  _ReactiveWidgetState createState() => _ReactiveWidgetState();
+  _RStoreBuilderState createState() => _RStoreBuilderState();
 }
 
-class _ReactiveWidgetState extends State<ReactiveWidget> {
+class _RStoreBuilderState extends State<RStoreBuilder> {
   StreamSubscription<List<String>>? _changeStoreSubscription;
   StreamSubscription<bool>? _setStoreSubscription;
   List<dynamic> _lastWatch = [];
@@ -279,9 +280,9 @@ class _ReactiveWidgetState extends State<ReactiveWidget> {
       _changeStoreSubscription = widget.store._streamTags.listen((tags) {
         if (mounted) {
           if (tags.contains(widget.tag)) {
-            widget.onChange(context);
+            widget.onChange?.call(context);
             // check mounted because onChange can unmount
-            if (mounted && !widget.noRebuild) setState(() {});
+            if (mounted && widget.builder != null) setState(() {});
           }
         }
       });
@@ -293,13 +294,10 @@ class _ReactiveWidgetState extends State<ReactiveWidget> {
         if (_lastWatch.isNotEmpty && mounted) {
           List<dynamic> nowWatch = widget.watch!();
           if (RStore._isWatchValuesUpdates(_lastWatch, nowWatch)) {
-            widget.onChange(context);
+            widget.onChange?.call(context);
+            _lastWatch = RStore._cloneWatchList(nowWatch);
             // check mounted because onChange can unmount
-            if (mounted && !widget.noRebuild) {
-              setState(() {
-                _lastWatch = RStore._cloneWatchList(nowWatch);
-              });
-            }
+            if (mounted && widget.builder != null) setState(() {});
           }
         }
       });
@@ -314,5 +312,10 @@ class _ReactiveWidgetState extends State<ReactiveWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.builder(context, widget.child);
+  Widget build(BuildContext context) {
+    if (widget.builder == null) {
+      return widget.child ?? const SizedBox.shrink();
+    }
+    return widget.builder!.call(context, widget.child);
+  }
 }

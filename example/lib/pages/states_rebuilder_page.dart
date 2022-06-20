@@ -89,7 +89,7 @@ class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
           ),
           const Divider(),
           Center(
-            child: RStoreBuilder(
+            child: RStoreWatchBuilder(
               store: store,
               watch: () => [store.detailedIndex, store.detailedColor],
               builder: (context, _) => store.detailedIndex < 0

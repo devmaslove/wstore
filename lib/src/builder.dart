@@ -20,23 +20,21 @@ class RStoreTagBuilder extends StatelessWidget {
     required this.store,
     required this.tag,
     this.child,
-  })  : assert(tag.length > 0, 'tag must not be empty'),
+  })  : assert(tag.length > 0, 'tag must not be empty string'),
         super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ReactiveWidget(
-      builder: (context, child) {
-        if (builder == null && child == null) {
-          return const SizedBox.shrink();
-        }
-        return builder?.call(context, child) ?? child!;
-      },
+    return RStoreBuilder(
+      builder: builder != null
+          ? (context, child) {
+              return builder!.call(context, child);
+            }
+          : null,
       onChange: (context) => onChange?.call(context),
       child: child,
       tag: tag,
       store: store,
-      noRebuild: builder == null,
     );
   }
 }
@@ -62,25 +60,21 @@ class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = RStoreWidget.of<T>(context);
-    return ReactiveWidget(
-      builder: (context, child) {
-        if (builder == null && child == null) {
-          return const SizedBox.shrink();
-        }
-        return builder?.call(context, store, child) ?? child!;
-      },
-      onChange: (context) {
-        onChange?.call(context, store);
-      },
+    return RStoreBuilder(
+      builder: builder != null
+          ? (context, child) {
+              return builder!.call(context, store, child);
+            }
+          : null,
+      onChange: (context) => onChange?.call(context, store),
       child: child,
       tag: tag,
       store: store,
-      noRebuild: builder == null,
     );
   }
 }
 
-class RStoreBuilder extends StatelessWidget {
+class RStoreWatchBuilder extends StatelessWidget {
   final Widget Function(BuildContext context, Widget? child)? builder;
   final void Function(BuildContext context)? onChange;
   final List<dynamic> Function() watch;
@@ -89,7 +83,7 @@ class RStoreBuilder extends StatelessWidget {
   /// The child widget to pass to the builder, should not be rebuilt
   final Widget? child;
 
-  const RStoreBuilder({
+  const RStoreWatchBuilder({
     Key? key,
     this.builder,
     this.onChange,
@@ -100,29 +94,23 @@ class RStoreBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ReactiveWidget(
-      builder: (context, child) {
-        if (builder == null && child == null) {
-          return const SizedBox.shrink();
-        }
-        return builder?.call(context, child) ?? child!;
-      },
+    return RStoreBuilder(
+      builder: builder != null
+          ? (context, child) {
+              return builder!.call(context, child);
+            }
+          : null,
       onChange: (context) => onChange?.call(context),
       child: child,
       watch: watch,
       store: store,
-      noRebuild: builder == null,
     );
   }
 }
 
 class RStoreValueBuilder<V> extends StatelessWidget {
-  final Widget Function(
-    BuildContext context,
-    V watchVariable,
-    Widget? child,
-  )? builder;
-  final void Function(BuildContext context, V watchVariable)? onChange;
+  final Widget Function(BuildContext context, V value, Widget? child)? builder;
+  final void Function(BuildContext context, V value)? onChange;
   final V Function() watch;
   final RStore store;
 
@@ -140,18 +128,16 @@ class RStoreValueBuilder<V> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ReactiveWidget(
-      builder: (context, child) {
-        if (builder == null && child == null) {
-          return const SizedBox.shrink();
-        }
-        return builder?.call(context, watch(), child) ?? child!;
-      },
+    return RStoreBuilder(
+      builder: builder != null
+          ? (context, child) {
+              return builder!.call(context, watch(), child);
+            }
+          : null,
       onChange: (context) => onChange?.call(context, watch()),
       child: child,
       watch: () => [watch()],
       store: store,
-      noRebuild: builder == null,
     );
   }
 }
@@ -175,29 +161,23 @@ class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = RStoreWidget.of<T>(context);
-    return ReactiveWidget(
-      builder: (context, child) {
-        if (builder == null && child == null) {
-          return const SizedBox.shrink();
-        }
-        return builder?.call(context, store, child) ?? child!;
-      },
+    return RStoreBuilder(
+      builder: builder != null
+          ? (context, child) {
+              return builder!.call(context, store, child);
+            }
+          : null,
       onChange: (context) => onChange?.call(context, store),
       child: child,
       watch: () => watch(store),
       store: store,
-      noRebuild: builder == null,
     );
   }
 }
 
 class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
-  final Widget Function(
-    BuildContext context,
-    V watchVariable,
-    Widget? child,
-  )? builder;
-  final void Function(BuildContext context, V watchVariable)? onChange;
+  final Widget Function(BuildContext context, V value, Widget? child)? builder;
+  final void Function(BuildContext context, V value)? onChange;
   final V Function(T store) watch;
 
   /// The child widget to pass to the builder, should not be rebuilt
@@ -214,18 +194,16 @@ class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = RStoreWidget.of<T>(context);
-    return ReactiveWidget(
-      builder: (context, child) {
-        if (builder == null && child == null) {
-          return const SizedBox.shrink();
-        }
-        return builder?.call(context, watch(store), child) ?? child!;
-      },
+    return RStoreBuilder(
+      builder: builder != null
+          ? (context, child) {
+              return builder!.call(context, watch(store), child);
+            }
+          : null,
       onChange: (context) => onChange?.call(context, watch(store)),
       child: child,
       watch: () => [watch(store)],
       store: store,
-      noRebuild: builder == null,
     );
   }
 }
