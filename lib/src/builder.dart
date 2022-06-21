@@ -59,7 +59,7 @@ class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = RStoreWidget.of<T>(context);
+    final store = RStoreWidget.store<T>(context);
     return RStoreBuilder(
       builder: builder != null
           ? (context, child) {
@@ -160,7 +160,7 @@ class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = RStoreWidget.of<T>(context);
+    final store = RStoreWidget.store<T>(context);
     return RStoreBuilder(
       builder: builder != null
           ? (context, child) {
@@ -193,7 +193,7 @@ class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = RStoreWidget.of<T>(context);
+    final store = RStoreWidget.store<T>(context);
     return RStoreBuilder(
       builder: builder != null
           ? (context, child) {

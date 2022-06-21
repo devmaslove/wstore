@@ -197,7 +197,7 @@ abstract class RStoreWidget<T extends RStore> extends StatefulWidget {
 
   /// Obtains the nearest [RStoreWidget] up its widget tree
   /// and returns its store.
-  static T of<T extends RStore>(BuildContext context) {
+  static T store<T extends RStore>(BuildContext context) {
     var widget = context
         .getElementForInheritedWidgetOfExactType<InheritedRStore<T>>()
         ?.widget;
@@ -208,9 +208,7 @@ abstract class RStoreWidget<T extends RStore> extends StatefulWidget {
     }
   }
 
-  static BoxConstraints widgetConstraintsOf<T extends RStore>(
-    BuildContext context,
-  ) {
+  static BoxConstraints constraints<T extends RStore>(BuildContext context) {
     var widget =
         context.dependOnInheritedWidgetOfExactType<InheritedRStore<T>>();
     if (widget == null) {
@@ -220,9 +218,7 @@ abstract class RStoreWidget<T extends RStore> extends StatefulWidget {
     }
   }
 
-  static Orientation widgetOrientationOf<T extends RStore>(
-    BuildContext context,
-  ) {
+  static Orientation orientation<T extends RStore>(BuildContext context) {
     var widget =
         context.dependOnInheritedWidgetOfExactType<InheritedRStore<T>>();
     if (widget == null) {
