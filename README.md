@@ -43,10 +43,9 @@ RStore - это библиотека для state manage во Flutter.
 - Виджеты сами перестраиваются в зависимости от данных в `RStore`, не нужно управлять подписками
 - Можно использовать простые типы данных без всяких обёрток (не нужно на каждую переменную создавать обертку)
 - Используем RStoreBuilder - как принято стандартно во Flutter без скрытой магии строим виджеты через билдеры
-- Встроенный RStoreProvider чтобы создать передать RStore вниз по дереву
 - Маленький, простой и понятный интерфейс - setStore, Builder и Provider
 
-## Install
+## Установка
 
 Change `pubspec.yaml` (and run an implicit pub get):
 
@@ -57,12 +56,12 @@ dependencies:
       url: https://github.com/dmitrymaslovhome/reactive_store
 ```
 
-## Usage
+## Использование
 
 Создаем класс с данными:
 
 ```dart
-class _MyAppStore extends RStore {
+class MyAppStore extends RStore {
   int counter = 0;
 
   void incrementCounter() {
@@ -72,7 +71,7 @@ class _MyAppStore extends RStore {
   }
 }
 
-final store = _MyAppStore();
+final store = MyAppStore();
 ```
 
 Билдим данные в дерево виджетов:
@@ -142,36 +141,15 @@ RStoreValueBuilder<int>(
 ),
 ```
 
-Для пробрасывания хранилища по дереву виджетов можно использовать
-`RStoreProvider`:
+При использовании `RStoreWidger` из контекста можно получить доступ к его
+максимальным размерам `RStoreWidger.constraints`
+(из размеров также получается `RStoreWidger.orientation`)
 
-```dart
-@override
-Widget build(BuildContext context) {
-  return MaterialApp(
-    home: RStoreProvider<_MyAppStore>(
-      create: () => _MyAppStore(),
-      child: const _MyAppContent(),
-    ),
-  );
-}
-
-
-@override
-Widget build(BuildContext context) {
-  final store = RStoreProvider.of<_MyAppStore>(context);
-  ...
-```
-
-При использовании `RStoreProvider` из контекста можно получить доступ к
-максимальным размерам `RStoreProvider.widgetConstraintsOf`
-(из размеров также получается `RStoreProvider.widgetOrientationOf`)
-
-`RStoreProvider` позволяет использовать контекстные билдеры которые
+`RStoreWidget` позволяет использовать контекстные билдеры которые
 сами находят хранилище:
 
 ```dart
-RStoreContextValueBuilder<_MyAppStore, int>(
+RStoreContextValueBuilder<MyAppStore, int>(
   watch: (store) => store.counter,
   builder: (context, counter, _) {
     return Text(
@@ -181,7 +159,7 @@ RStoreContextValueBuilder<_MyAppStore, int>(
   },
 )
 
-RStoreContextBuilder<_MyAppStore>(
+RStoreContextBuilder<MyAppStore>(
   watch: (store) => [store.counter],
   builder: (context, store, _) => Text(
     '${store.counter}',
@@ -189,7 +167,7 @@ RStoreContextBuilder<_MyAppStore>(
   ),
 )
 
-RStoreContextTagBuilder<_MyAppStore>(
+RStoreContextTagBuilder<MyAppStore>(
   tag: 'name of builder',
   builder: (context, store, _) => Text(
     '${store.counter}',
@@ -243,7 +221,7 @@ RStoreValueBuilder<int>(
 пересчитать при обновлении `counter` и задаём уникальный ключ в кеше `"doubleCounter"`:
 
 ```dart
-class _MyAppStore extends RStore {
+class MyAppStore extends RStore {
   int counter = 0;
 
   get doubleCounter => compose<int>(
@@ -271,7 +249,7 @@ class _MyAppStore extends RStore {
 Для удобства создания виджетов со сторой сделан класс `RStoreWidget`.
 
 Когда `RStore` создается через него, то она дополнительно получает доступ к этому виджету
-`RStore.widget` и также пробрасывается вниз по дереву через `RStoreProvider`.
+`RStore.widget` и также пробрасывается вниз по дереву (доступна через context).
 
 Просто немного удобства, чтобы сразу в сторе иметь доступ ко входящим параметрам виджета, к
 его калбекам. Иначе пришлось бы это всё руками пробрасывать.
@@ -285,12 +263,14 @@ import 'package:flutter/material.dart';
 import 'package:reactive_store/reactive_store.dart';
 
 class $STORE_NAME$ extends RStore {
-  static $STORE_NAME$ of(BuildContext context) {
-    return RStoreProvider.of<$STORE_NAME$>(context);
-  }
+  // TODO: add data here...
 
   @override
   $WIDGET_NAME$ get widget => super.widget as $WIDGET_NAME$;
+
+  static $STORE_NAME$ of(BuildContext context) {
+    return RStoreWidget.store<$STORE_NAME$>(context);
+  }
 }
 
 class $NAME$ extends RStoreWidget<$STORE_NAME$> {
@@ -333,13 +313,15 @@ and then select the Dart language.
       "import 'package:reactive_store/reactive_store.dart';",
       "",
       "class $1Store extends RStore {",
-      "\tstatic $1Store of(BuildContext context) {",
-      "\t\treturn RStoreProvider.of<$1Store>(context);",
-      "\t}",
+      "// TODO: add data here...",
       "",
       "\t@override",
       "\t$1 get widget => super.widget as $1;",
       "}",
+      "",
+      "\tstatic $1Store of(BuildContext context) {",
+      "\t\treturn RStoreWidget.store<$1Store>(context);",
+      "\t}",
       "",
       "class ${1:MyWidget} extends RStoreWidget<$1Store> {",
       "\tconst $1({",
@@ -388,4 +370,4 @@ Tag билдеры, но лучше от этой практики воздер�
 - RStore - создает стримы которые пушатся по setStore
 - Билдеры - это StatefulWidget`ы которые подписываются на стримы из RStore
 - Если watch лист изменился то вызывается setState и происходит ребилд (сравнение элементов в watch происходит по ссылке - по этому в RStore надо перезаписывать объект, чтобы подхватилось изменения)
-- RStoreProvider оборачивает RStore в InheritedWidget
+- RStoreWidget оборачивает RStore в InheritedWidget

@@ -16,6 +16,7 @@ class RStore {
   final Map<int, Timer> _timers = {};
   RStoreWidget? _widget;
 
+  /// Get [RStoreWidget] associated with this store.
   @protected
   RStoreWidget get widget {
     if (_widget == null) {
@@ -114,6 +115,10 @@ class RStore {
     );
   }
 
+  /// Cancel timer by timerID
+  ///
+  /// killTimer called when RStore.dispose
+  /// or when created a new one with same timerId
   void killTimer({final int timerId = 0}) {
     _timers.remove(timerId)?.cancel();
   }
