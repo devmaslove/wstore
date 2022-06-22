@@ -2,25 +2,25 @@ import 'package:flutter/material.dart';
 
 import 'store.dart';
 
-/// RStoreTagBuilder allows you to create widgets that can be updated manually
-/// by tag (see RStore.updateBuildersByTags)
-class RStoreTagBuilder extends StatelessWidget {
+/// [RStoreNamedBuilder] allows you to create widgets that can be updated
+/// manually by name (see [RStore.updateBuildersByNames])
+class RStoreNamedBuilder extends StatelessWidget {
   final Widget Function(BuildContext context, Widget? child)? builder;
   final Widget Function(BuildContext context)? onChange;
-  final String tag;
+  final String name;
   final RStore store;
 
   /// The child widget to pass to the builder, should not be rebuilt
   final Widget? child;
 
-  const RStoreTagBuilder({
+  const RStoreNamedBuilder({
     Key? key,
     this.builder,
     this.onChange,
     required this.store,
-    required this.tag,
+    required this.name,
     this.child,
-  })  : assert(tag.length > 0, 'tag must not be empty string'),
+  })  : assert(name.length > 0, 'name must not be empty string'),
         super(key: key);
 
   @override
@@ -33,27 +33,27 @@ class RStoreTagBuilder extends StatelessWidget {
           : null,
       onChange: (context) => onChange?.call(context),
       child: child,
-      tag: tag,
+      name: name,
       store: store,
     );
   }
 }
 
-/// RStoreContextTagBuilder allows you to create widgets that can be updated
-/// manually by tag (see RStore.updateBuildersByTags)
-class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
+/// [RStoreContextNamedBuilder] allows you to create widgets that can be updated
+/// manually by name (see [RStore.updateBuildersByNames])
+class RStoreContextNamedBuilder<T extends RStore> extends StatelessWidget {
   final Widget Function(BuildContext context, T store, Widget? child)? builder;
   final Widget Function(BuildContext context, T store)? onChange;
-  final String tag;
+  final String name;
 
   /// The child widget to pass to the builder, should not be rebuilt
   final Widget? child;
 
-  const RStoreContextTagBuilder({
+  const RStoreContextNamedBuilder({
     Key? key,
     this.builder,
     this.onChange,
-    required this.tag,
+    required this.name,
     this.child,
   }) : super(key: key);
 
@@ -68,7 +68,7 @@ class RStoreContextTagBuilder<T extends RStore> extends StatelessWidget {
           : null,
       onChange: (context) => onChange?.call(context, store),
       child: child,
-      tag: tag,
+      name: name,
       store: store,
     );
   }

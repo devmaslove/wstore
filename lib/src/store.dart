@@ -8,8 +8,8 @@ import 'inherited.dart';
 class RStore {
   late final StreamController<bool> _controllerWatchers;
   late final Stream<bool> _streamWatchers;
-  late final StreamController<List<String>> _controllerTags;
-  late final Stream<List<String>> _streamTags;
+  late final StreamController<List<String>> _controllerNames;
+  late final Stream<List<String>> _streamNames;
   final Map<String, dynamic> _composedValues = {};
   final Map<String, dynamic> _composedWatchList = {};
   final Map<String, dynamic> _composedWatchFunc = {};
@@ -29,15 +29,18 @@ class RStore {
   RStore() {
     _controllerWatchers = StreamController.broadcast();
     _streamWatchers = _controllerWatchers.stream;
-    _controllerTags = StreamController<List<String>>.broadcast();
-    _streamTags = _controllerTags.stream;
+    _controllerNames = StreamController<List<String>>.broadcast();
+    _streamNames = _controllerNames.stream;
   }
 
   /// Notifying that the store has been updated.
-  void setStore(VoidCallback fn, {final List<String> tags = const []}) {
+  void setStore(
+    VoidCallback fn, [
+    final List<String> buildersNames = const [],
+  ]) {
     fn();
     notifyChangeStore();
-    updateBuildersByTags(tags);
+    updateBuildersByNames(buildersNames);
   }
 
   /// Cache values for add to Builders watch lists:
@@ -130,11 +133,11 @@ class RStore {
     _controllerWatchers.add(true);
   }
 
-  /// Notifying builders with tags that the store has been updated and need
+  /// Notifying builders with names that the store has been updated and need
   /// rebuild.
   @protected
-  void updateBuildersByTags(final List<String> tags) {
-    if (tags.isNotEmpty) _controllerTags.add([...tags]);
+  void updateBuildersByNames(final List<String> names) {
+    if (names.isNotEmpty) _controllerNames.add([...names]);
   }
 
   @mustCallSuper
@@ -274,7 +277,7 @@ class _RStoreWidgetState<T extends RStore> extends State<RStoreWidget<T>> {
 class RStoreBuilder extends StatefulWidget {
   final RStore store;
   final List<dynamic> Function()? watch;
-  final String? tag;
+  final String? name;
   final Widget Function(BuildContext context, Widget? child)? builder;
   final void Function(BuildContext context)? onChange;
 
@@ -286,10 +289,13 @@ class RStoreBuilder extends StatefulWidget {
     this.builder,
     this.onChange,
     this.watch,
-    this.tag,
+    this.name,
     this.child,
     Key? key,
-  })  : assert(tag == null || tag.length > 0, 'tag must not be empty string'),
+  })  : assert(
+          name == null || name.length > 0,
+          'name must not be empty string',
+        ),
         super(key: key);
 
   @override
@@ -305,10 +311,10 @@ class _RStoreBuilderState extends State<RStoreBuilder> {
   void initState() {
     super.initState();
 
-    if (widget.tag != null) {
-      _changeStoreSubscription = widget.store._streamTags.listen((tags) {
+    if (widget.name != null) {
+      _changeStoreSubscription = widget.store._streamNames.listen((tags) {
         if (mounted) {
-          if (tags.contains(widget.tag)) {
+          if (tags.contains(widget.name)) {
             widget.onChange?.call(context);
             // check mounted because onChange can unmount
             if (mounted && widget.builder != null) setState(() {});

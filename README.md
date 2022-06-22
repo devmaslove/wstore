@@ -24,7 +24,7 @@ RStore - это библиотека для state manage во Flutter.
 В поисках решения я натолкнулся на [consumer](https://pub.dev/packages/consumer) -
 то что надо! Только допилить напильником :)
 
-## Concept
+## Концепция
 
 Создаем обычный класс с данными - много разных переменных
 (наследник `RStore`).
@@ -38,16 +38,16 @@ RStore - это библиотека для state manage во Flutter.
 При изменении данных вызываем у класса `setStore` для уведомления билдеров
 что данные изменились.
 
-## Features
+## Характеристики
 
 - Виджеты сами перестраиваются в зависимости от данных в `RStore`, не нужно управлять подписками
 - Можно использовать простые типы данных без всяких обёрток (не нужно на каждую переменную создавать обертку)
 - Используем RStoreBuilder - как принято стандартно во Flutter без скрытой магии строим виджеты через билдеры
-- Маленький, простой и понятный интерфейс - setStore, Builder и Provider
+- Маленький, простой и понятный интерфейс - RStore, RStoreWidget и RStoreBuilder
 
 ## Установка
 
-Change `pubspec.yaml` (and run an implicit pub get):
+В `pubspec.yaml` добавить (сохранить и запустить pub get):
 
 ```yaml
 dependencies:
@@ -98,12 +98,12 @@ Widget build(BuildContext context) {
 }
 ```
 
-Также можно сделать билдер который обновляется вручную по строковому `tag`.
-Для этого используем `RStoreTagBuilder`, а в `setStore` указываем `tags`:
+Также можно сделать билдер который обновляется вручную по `name`.
+Для этого используем `RStoreNamedBuilder`, а в `setStore` указываем `buildersNames`:
 ```dart
-RStoreTagBuilder(
+RStoreNamedBuilder(
   store: store,
-  tag: 'name of builder',
+  name: 'name of builder',
   builder: (context, _) {
     return Text(
       '${store.counter}',
@@ -114,16 +114,16 @@ RStoreTagBuilder(
 
 ...
 
-// update builder by tag
-store.setStore(() => store.counter++, tags: ['name of builder']);
+// update builder by name
+store.setStore(() => store.counter++, ['name of builder']);
 ```
 
-TagBuilder использовать только если требуется быстро написать
+NamedBuilder использовать только если требуется быстро написать
 логику для отображения сложных структур данных. Потом нужно отрефакторить и
 переписать всё на watch листы. Разделяем ответственность - стора не должна
 знать кто за ней следит.
 
-## Additional information
+## Дополнительная информация
 
 Для того чтобы подписаться только на одну переменную можно использовать
 шаблон `RStoreValueBuilder`:
@@ -141,14 +141,21 @@ RStoreValueBuilder<int>(
 ),
 ```
 
-При использовании `RStoreWidger` из контекста можно получить доступ к его
-максимальным размерам `RStoreWidger.constraints`
-(из размеров также получается `RStoreWidger.orientation`)
+При использовании `RStoreWidget` из контекста можно получить доступ к его
+максимальным размерам `RStoreWidget.constraints`
+(из размеров также получается `RStoreWidget.orientation`)
 
-`RStoreWidget` позволяет использовать контекстные билдеры которые
-сами находят хранилище:
+`RStoreWidget` позволяет использовать билдеры которые сами находят хранилище в контексте:
 
 ```dart
+RStoreContextBuilder<MyAppStore>(
+  watch: (store) => [store.counter],
+  builder: (context, store, _) => Text(
+    '${store.counter}',
+    style: Theme.of(context).textTheme.headline4,
+  ),
+)
+
 RStoreContextValueBuilder<MyAppStore, int>(
   watch: (store) => store.counter,
   builder: (context, counter, _) {
@@ -159,16 +166,8 @@ RStoreContextValueBuilder<MyAppStore, int>(
   },
 )
 
-RStoreContextBuilder<MyAppStore>(
-  watch: (store) => [store.counter],
-  builder: (context, store, _) => Text(
-    '${store.counter}',
-    style: Theme.of(context).textTheme.headline4,
-  ),
-)
-
-RStoreContextTagBuilder<MyAppStore>(
-  tag: 'name of builder',
+RStoreContextNamedBuilder<MyAppStore>(
+  name: 'name of builder',
   builder: (context, store, _) => Text(
     '${store.counter}',
     style: Theme.of(context).textTheme.headline4,
@@ -195,7 +194,7 @@ RStoreValueBuilder<int>(
 ),
 ```
 
-В билдере межно задать функцию `onChange` которая вызывается при изменении
+В билдере можно задать функцию `onChange` которая вызывается при изменении
 watch листа перед `build` (не вызывается при инициализации):
 
 ```dart
@@ -209,6 +208,21 @@ RStoreValueBuilder<int>(
   builder: (__, counter, _) {
     return Text('$counter');
   },
+),
+```
+
+Если нам требудется только следить за изменениями без ребилда, то передаем только `child` и не
+переопределяем `builder`:
+
+```dart
+RStoreValueBuilder<int>(
+  store: store,
+  watch: () => store.counter,
+  onChange: (context, counter) {
+    // делаем тут что-то полезное
+    // например, Navigator.pop(context)...
+  },
+  child: Text('Not be rebuilt'),
 ),
 ```
 
@@ -313,7 +327,7 @@ and then select the Dart language.
       "import 'package:reactive_store/reactive_store.dart';",
       "",
       "class $1Store extends RStore {",
-      "// TODO: add data here...",
+      "\t// TODO: add data here...",
       "",
       "\t@override",
       "\t$1 get widget => super.widget as $1;",
@@ -342,32 +356,32 @@ and then select the Dart language.
 }
 ```
 
-## Good practices
+## Хорошие практики
 
 **Один "сложный" widget = один стор!** Если потребовалось подключать много сторов -
 значит вам нужно вынести часть подвиджетов в отдельный "сложный" widget.
 "Сложный" виджет наследуем от RStoreWidget.
 
-**В сторе не делаем функции на получение информации!** Информацию из хранилища получаем
+**В сторе не делаем функции/методы на получение информации!** Информацию из хранилища получаем
 только напрямую из переменных или геттеров. Если нужно как-то обработать данные
 перед выводом - делаем геттер и оборачиваем в `compose`.
 
-**Публичные методы сторы только на мутацию данных!** И методы эти не должны что-то
+**Публичные функции/методы сторы только на мутацию данных!** И методы эти не должны что-то
 возвращать. Остальную логику скрывать в приватных функциях.
 
-**Тэги и id таймеров/подписок задавать константами в сторе!** Лучше задать всё в одном
+**Имена билдеров и id таймеров/подписок задавать константами в сторе!** Лучше задать всё в одном
 месте и использовать от туда, чем копировать одинаковый текст или магические числа по коду.
 
 **Пересоздавайте объекты/мапы/листы в сторе вместо их мутации!** Watch билдеры сравнивают
 сложные объекты по ссылке если у них не переопределен оператор равенства. Они просто не
 узнают что что-то внутри объекта изменилось. Для совсем сложной логики и данных можно использовать
-Tag билдеры, но лучше от этой практики воздерживаться.
+именованные билдеры, но лучше от этой практики воздерживаться.
 
-## Built upon
+## Как это сделано
 
 Под капотом это использует обычную механику Flatter`а:
 
 - RStore - создает стримы которые пушатся по setStore
 - Билдеры - это StatefulWidget`ы которые подписываются на стримы из RStore
 - Если watch лист изменился то вызывается setState и происходит ребилд (сравнение элементов в watch происходит по ссылке - по этому в RStore надо перезаписывать объект, чтобы подхватилось изменения)
-- RStoreWidget оборачивает RStore в InheritedWidget
+- RStoreWidget оборачивает RStore в InheritedWidget и добавляет себя в RStore.widget
