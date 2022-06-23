@@ -26,13 +26,12 @@ class StatesReBuilderPageStore extends RStore {
   loadItems() {
     setTimeout(() async {
       items = await Item.fetchItems();
-      notifyChangeStore();
+      setStore(() {});
     }, 2500);
   }
 
   showDetailed(int index) {
-    detailedIndex = index;
-    notifyChangeStore();
+    setStore(() => detailedIndex = index);
   }
 
   increment() {
@@ -41,7 +40,7 @@ class StatesReBuilderPageStore extends RStore {
     // recreate new Item - for update watchers
     Item newItem = Item(currColor)..count = currValue + 1;
     items[detailedIndex] = newItem;
-    notifyChangeStore();
+    setStore(() {});
   }
 }
 

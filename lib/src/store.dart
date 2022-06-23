@@ -39,8 +39,12 @@ class RStore {
     final List<String> buildersNames = const [],
   ]) {
     fn();
-    notifyChangeStore();
-    updateBuildersByNames(buildersNames);
+    // Notifying builders with watchers that the store has been updated
+    _checkChangeComposed();
+    _controllerWatchers.add(true);
+    // Notifying builders with names that the store has been updated and need
+    // rebuild
+    if (buildersNames.isNotEmpty) _controllerNames.add([...buildersNames]);
   }
 
   /// Cache values for add to Builders watch lists:
@@ -124,20 +128,6 @@ class RStore {
   /// or when created a new one with same timerId
   void killTimer({final int timerId = 0}) {
     _timers.remove(timerId)?.cancel();
-  }
-
-  /// Notifying builders with watchers that the store has been updated.
-  @protected
-  void notifyChangeStore() {
-    _checkChangeComposed();
-    _controllerWatchers.add(true);
-  }
-
-  /// Notifying builders with names that the store has been updated and need
-  /// rebuild.
-  @protected
-  void updateBuildersByNames(final List<String> names) {
-    if (names.isNotEmpty) _controllerNames.add([...names]);
   }
 
   @mustCallSuper
