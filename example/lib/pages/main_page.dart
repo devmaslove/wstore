@@ -1,3 +1,4 @@
+import 'package:example/pages/splash_screen_page.dart';
 import 'package:example/pages/states_rebuilder_page.dart';
 import 'package:flutter/material.dart';
 
@@ -25,6 +26,12 @@ class MainPageContent extends StatelessWidget {
           text: 'States re-builder',
           page: () => const StatesReBuilderPage(),
         ),
+        const SizedBox(height: 20),
+        ButtonGoToPage(
+          text: 'States screen',
+          page: () => const SplashScreenPage(),
+        ),
+        const SizedBox(height: 20),
       ],
     );
   }
