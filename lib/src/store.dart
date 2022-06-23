@@ -130,6 +130,7 @@ class RStore {
     _timers.remove(timerId)?.cancel();
   }
 
+  /// Called when [RStoreWidget] is removed from the tree permanently.
   @mustCallSuper
   void dispose() {
     // clear widget
@@ -183,6 +184,7 @@ abstract class RStoreWidget<T extends RStore> extends StatefulWidget {
   @protected
   Widget build(BuildContext context, T store);
 
+  /// Creates the [RStore] for this widget
   @protected
   T createRStore();
 
