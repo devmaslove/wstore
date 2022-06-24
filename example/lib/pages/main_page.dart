@@ -1,3 +1,4 @@
+import 'package:example/pages/counter_page.dart';
 import 'package:example/pages/splash_screen_page.dart';
 import 'package:example/pages/states_rebuilder_page.dart';
 import 'package:flutter/material.dart';
@@ -28,8 +29,13 @@ class MainPageContent extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         ButtonGoToPage(
-          text: 'States screen',
+          text: 'Splash screen',
           page: () => const SplashScreenPage(),
+        ),
+        const SizedBox(height: 20),
+        ButtonGoToPage(
+          text: 'Counter (default app)',
+          page: () => const CounterPage(),
         ),
         const SizedBox(height: 20),
       ],
