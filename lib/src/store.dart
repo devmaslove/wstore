@@ -38,7 +38,18 @@ class RStore {
     VoidCallback fn, [
     final List<String> buildersNames = const [],
   ]) {
-    fn();
+    final Object? result = fn() as dynamic;
+    assert(
+      () {
+        if (result is Future) return false;
+        return true;
+      }(),
+      'setStore() callback argument returned a Future. '
+      'Maybe it is marked as "async"? Instead of performing asynchronous '
+      'work inside a call to setStore(), first execute the work '
+      '(without updating the store), and then synchronously '
+      'update the store inside a call to setStore().',
+    );
     // Notifying builders with watchers that the store has been updated
     _checkChangeComposed();
     _controllerWatchers.add(true);
