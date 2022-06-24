@@ -6,6 +6,11 @@ class CounterPageStore extends RStore {
 
   void incrementCounter() {
     setStore(() {
+      // This call to setStore tells the RStoreBuilders that something has
+      // changed in this RStore, which causes it to rerun the build method below
+      // so that the display can reflect the updated values. If we changed
+      // counter without calling setStore(), then the build method would not be
+      // called again, and so nothing would appear to happen.
       counter++;
     });
   }
