@@ -17,9 +17,7 @@ class CounterPageStore extends RStore {
 }
 
 class CounterPage extends RStoreWidget<CounterPageStore> {
-  const CounterPage({
-    super.key,
-  });
+  const CounterPage({super.key});
 
   @override
   Widget build(BuildContext context, CounterPageStore store) {
