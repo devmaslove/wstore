@@ -1,7 +1,7 @@
 name: reactive_store
 description: A state management library that helps add reactivity to widgets.
 version: 0.0.5
-repository: https://github.com/dmitrymaslovhome/reactive_store
+repository: https://github.com/devmaslove/reactive_store
 
 environment:
   sdk: ">=2.16.2 <3.0.0"
