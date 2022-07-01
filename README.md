@@ -58,7 +58,7 @@ RStore - это библиотека для state manage во Flutter.
 dependencies:
   reactive_store:
     git:
-      url: https://github.com/dmitrymaslovhome/reactive_store
+      url: https://github.com/devmaslove/reactive_store
 ```
 
 ## Использование
