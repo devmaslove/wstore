@@ -218,28 +218,6 @@ abstract class RStoreWidget<T extends RStore> extends StatefulWidget {
       return (widget as InheritedRStore<T>).store;
     }
   }
-
-  static BoxConstraints constraints<T extends RStore>(BuildContext context) {
-    var widget =
-        context.dependOnInheritedWidgetOfExactType<InheritedRStore<T>>();
-    if (widget == null) {
-      throw RStoreNotFoundError(T, context.widget.runtimeType, '');
-    } else {
-      return widget.constraints;
-    }
-  }
-
-  static Orientation orientation<T extends RStore>(BuildContext context) {
-    var widget =
-        context.dependOnInheritedWidgetOfExactType<InheritedRStore<T>>();
-    if (widget == null) {
-      throw RStoreNotFoundError(T, context.widget.runtimeType, '');
-    } else {
-      return widget.constraints.maxWidth > widget.constraints.maxHeight
-          ? Orientation.landscape
-          : Orientation.portrait;
-    }
-  }
 }
 
 class _RStoreWidgetState<T extends RStore> extends State<RStoreWidget<T>> {
@@ -260,19 +238,14 @@ class _RStoreWidgetState<T extends RStore> extends State<RStoreWidget<T>> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        store._widget = widget;
-        if (!initStore) {
-          initStore = true;
-          widget.initRStore(store);
-        }
-        return InheritedRStore<T>(
-          store: store,
-          constraints: constraints,
-          child: widget.build(context, store),
-        );
-      },
+    store._widget = widget;
+    if (!initStore) {
+      initStore = true;
+      widget.initRStore(store);
+    }
+    return InheritedRStore<T>(
+      store: store,
+      child: widget.build(context, store),
     );
   }
 }
