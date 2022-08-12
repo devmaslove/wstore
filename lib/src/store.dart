@@ -14,6 +14,7 @@ class RStore {
   final Map<String, dynamic> _composedWatchList = {};
   final Map<String, dynamic> _composedWatchFunc = {};
   final Map<int, Timer> _timers = {};
+  final Map<int, StreamSubscription> _subscriptions = {};
   RStoreWidget? _widget;
 
   /// Get [RStoreWidget] associated with this store.
@@ -141,6 +142,71 @@ class RStore {
     _timers.remove(timerId)?.cancel();
   }
 
+  /// Create new stream subscription
+  ///
+  /// Subscriptions are automatically canceled when RStore.dispose
+  /// or when created a new one with same subscriptionId
+  void subscribe<V>({
+    required final Stream<V> stream,
+    final int subscriptionId = 0,
+    void Function(V)? onData,
+    void Function(Object, StackTrace)? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
+    // cancel old subscription
+    cancelSubscription(subscriptionId: subscriptionId);
+    // create new subscription
+    _subscriptions[subscriptionId] = stream.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
+  }
+
+  /// Subscribe to stream
+  ///
+  /// Create new stream subscription
+  void listenStream<V>(
+    final Stream<V> stream, {
+    final int id = 0,
+    required void Function(V) onData,
+    void Function(Object, StackTrace)? onError,
+  }) {
+    subscribe<V>(
+      stream: stream,
+      onData: onData,
+      onError: onError,
+      subscriptionId: id,
+    );
+  }
+
+  /// Subscribe to future
+  ///
+  /// Create new stream subscription
+  void listenFuture<V>(
+    final Future<V> future, {
+    final int id = 0,
+    required void Function(V) onData,
+    void Function(Object, StackTrace)? onError,
+  }) {
+    subscribe<V>(
+      stream: future.asStream(),
+      onData: onData,
+      onError: onError,
+      subscriptionId: id,
+    );
+  }
+
+  /// Cancel subscription by subscriptionID
+  ///
+  /// cancelSubscription called when RStore.dispose
+  /// or when created a new one with same subscriptionId
+  void cancelSubscription({final int subscriptionId = 0}) {
+    _subscriptions.remove(subscriptionId)?.cancel();
+  }
+
   /// Called when [RStoreWidget] is removed from the tree permanently.
   @mustCallSuper
   void dispose() {
@@ -151,6 +217,11 @@ class RStore {
       timer.cancel();
     });
     _timers.clear();
+    // clear all subscriptions
+    _subscriptions.forEach((_, subscription) {
+      subscription.cancel();
+    });
+    _subscriptions.clear();
   }
 
   void _checkChangeComposed() {
