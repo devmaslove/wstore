@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:reactive_store/reactive_store.dart';
 
 class DebouncePageStore extends RStore {
+  static const _timerIdSearchText = 0;
   String searchText = '';
   String inputText = '';
 
@@ -18,7 +19,7 @@ class DebouncePageStore extends RStore {
     });
     setTimeout(() {
       setStore(() => searchText = text);
-    }, 500);
+    }, 500, _timerIdSearchText);
   }
 }
 

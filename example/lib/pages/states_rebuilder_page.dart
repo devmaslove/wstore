@@ -20,6 +20,7 @@ class Item {
 }
 
 class StatesReBuilderPageStore extends RStore {
+  static const _timerIdLoadItems = 0;
   List<Item> items = [];
   int detailedIndex = -1;
 
@@ -27,7 +28,7 @@ class StatesReBuilderPageStore extends RStore {
     setTimeout(() async {
       items = await Item.fetchItems();
       setStore(() {});
-    }, 2500);
+    }, 2500, _timerIdLoadItems);
   }
 
   showDetailed(int index) {

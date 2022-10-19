@@ -16,6 +16,7 @@ class RStore {
   final Map<int, Timer> _timers = {};
   final Map<int, StreamSubscription> _subscriptions = {};
   RStoreWidget? _widget;
+  int _prevId = 0;
 
   /// Get [RStoreWidget] associated with this store.
   @protected
@@ -87,23 +88,26 @@ class RStore {
   /// Timers are automatically canceled when RStore.dispose
   /// or when created a new one with same timerId
   /// (сan be used to set debounce time e.g.)
-  void setTimer({
+  int setTimer({
     required final VoidCallback onTimer,
     required final Duration duration,
-    final int timerId = 0,
+    final int? timerId,
     final bool periodic = false,
   }) {
+    assert(timerId == null || timerId >= 0, 'timerId must be positive integer');
+    final int id = timerId ?? _getNextID();
     // kill old timer
-    killTimer(timerId: timerId);
+    killTimer(timerId: id);
     // create new timer
     if (periodic) {
-      _timers[timerId] = Timer.periodic(duration, (_) => onTimer());
+      _timers[id] = Timer.periodic(duration, (_) => onTimer());
     } else {
-      _timers[timerId] = Timer(duration, () {
-        killTimer(timerId: timerId);
+      _timers[id] = Timer(duration, () {
+        killTimer(timerId: id);
         onTimer();
       });
     }
+    return id;
   }
 
   /// Create new non periodic timer
@@ -111,8 +115,9 @@ class RStore {
   /// Timers are automatically canceled when RStore.dispose
   /// or when created a new one with same timerId
   /// (сan be used to set debounce time e.g.)
-  void setTimeout(VoidCallback onTimer, int milliseconds, [int timerId = 0]) {
-    setTimer(
+  int setTimeout(VoidCallback onTimer, int milliseconds, [int? timerId]) {
+    assert(timerId == null || timerId >= 0, 'timerId must be positive integer');
+    return setTimer(
       onTimer: onTimer,
       duration: Duration(milliseconds: milliseconds),
       timerId: timerId,
@@ -125,8 +130,9 @@ class RStore {
   /// Timers are automatically canceled when RStore.dispose
   /// or when created a new one with same timerId
   /// (сan be used to set debounce time e.g.)
-  void setInterval(VoidCallback onTimer, int milliseconds, [int timerId = 0]) {
-    setTimer(
+  int setInterval(VoidCallback onTimer, int milliseconds, [int? timerId]) {
+    assert(timerId == null || timerId >= 0, 'timerId must be positive integer');
+    return setTimer(
       onTimer: onTimer,
       duration: Duration(milliseconds: milliseconds),
       timerId: timerId,
@@ -138,7 +144,7 @@ class RStore {
   ///
   /// killTimer called when RStore.dispose
   /// or when created a new one with same timerId
-  void killTimer({final int timerId = 0}) {
+  void killTimer({required final int timerId}) {
     _timers.remove(timerId)?.cancel();
   }
 
@@ -146,35 +152,40 @@ class RStore {
   ///
   /// Subscriptions are automatically canceled when RStore.dispose
   /// or when created a new one with same subscriptionId
-  void subscribe<V>({
+  int subscribe<V>({
     required final Stream<V> stream,
-    final int subscriptionId = 0,
+    final int? subscriptionId,
     void Function(V)? onData,
     void Function(Object, StackTrace)? onError,
     void Function()? onDone,
     bool? cancelOnError,
   }) {
+    assert(subscriptionId == null || subscriptionId >= 0,
+        'subscriptionId must be positive integer');
+    final int id = subscriptionId ?? _getNextID();
     // cancel old subscription
-    cancelSubscription(subscriptionId: subscriptionId);
+    cancelSubscription(subscriptionId: id);
     // create new subscription
-    _subscriptions[subscriptionId] = stream.listen(
+    _subscriptions[id] = stream.listen(
       onData,
       onError: onError,
       onDone: onDone,
       cancelOnError: cancelOnError,
     );
+    return id;
   }
 
   /// Subscribe to stream
   ///
   /// Create new stream subscription
-  void listenStream<V>(
+  int listenStream<V>(
     final Stream<V> stream, {
-    final int id = 0,
+    final int? id,
     required void Function(V) onData,
     void Function(Object, StackTrace)? onError,
   }) {
-    subscribe<V>(
+    assert(id == null || id >= 0, 'id must be positive integer');
+    return subscribe<V>(
       stream: stream,
       onData: onData,
       onError: onError,
@@ -185,13 +196,14 @@ class RStore {
   /// Subscribe to future
   ///
   /// Create new stream subscription
-  void listenFuture<V>(
+  int listenFuture<V>(
     final Future<V> future, {
-    final int id = 0,
+    final int? id,
     required void Function(V) onData,
     void Function(Object, StackTrace)? onError,
   }) {
-    subscribe<V>(
+    assert(id == null || id >= 0, 'id must be positive integer');
+    return subscribe<V>(
       stream: future.asStream(),
       onData: onData,
       onError: onError,
@@ -203,7 +215,7 @@ class RStore {
   ///
   /// cancelSubscription called when RStore.dispose
   /// or when created a new one with same subscriptionId
-  void cancelSubscription({final int subscriptionId = 0}) {
+  void cancelSubscription({required final int subscriptionId}) {
     _subscriptions.remove(subscriptionId)?.cancel();
   }
 
@@ -238,6 +250,11 @@ class RStore {
     for (final key in removedKeys) {
       _composedWatchList.remove(key);
     }
+  }
+
+  int _getNextID() {
+    _prevId--;
+    return _prevId;
   }
 
   static bool _isWatchValuesUpdates(

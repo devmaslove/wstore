@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:reactive_store/reactive_store.dart';
 
 class SplashScreenPageStore extends RStore {
+  static const _timerIdNextScreen = 0;
   bool showNextScreen = false;
 
   startTimerNextPage() {
     setTimer(
       duration: const Duration(seconds: 2),
+      timerId: _timerIdNextScreen,
       onTimer: () => setStore(() {
         showNextScreen = true;
       }),
