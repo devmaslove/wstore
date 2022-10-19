@@ -35,18 +35,18 @@ class DebouncePage extends RStoreWidget<DebouncePageStore> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              RStoreValueBuilder<String>(
+              RStoreValueBuilder<DebouncePageStore, String>(
                 store: store,
-                watch: () => store.searchText,
-                builder: (context, text, _) {
+                watch: (store) => store.searchText,
+                builder: (context, text) {
                   return Text(text);
                 },
               ),
               const SizedBox(height: 20),
-              RStoreValueBuilder<bool>(
+              RStoreValueBuilder<DebouncePageStore, bool>(
                 store: store,
-                watch: () => store.isEmptyInputText,
-                builder: (context, isEmpty, _) {
+                watch: (store) => store.isEmptyInputText,
+                builder: (context, isEmpty) {
                   return _SearchField(
                     onChanged: store.setSearchText,
                     isEmpty: store.isEmptyInputText,

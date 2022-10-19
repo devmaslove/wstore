@@ -38,7 +38,7 @@ class RStore {
   /// Notifying that the store has been updated.
   void setStore(
     VoidCallback fn, [
-    final List<String> buildersNames = const [],
+    final List<String> names = const [],
   ]) {
     final Object? result = fn() as dynamic;
     assert(
@@ -57,7 +57,7 @@ class RStore {
     _controllerWatchers.add(true);
     // Notifying builders with names that the store has been updated and need
     // rebuild
-    if (buildersNames.isNotEmpty) _controllerNames.add([...buildersNames]);
+    if (names.isNotEmpty) _controllerNames.add([...names]);
   }
 
   /// Cache values for add to Builders watch lists:
@@ -338,7 +338,7 @@ class _RStoreWidgetState<T extends RStore> extends State<RStoreWidget<T>> {
   }
 }
 
-class RStoreBuilder extends StatefulWidget {
+class RStoreConsumer extends StatefulWidget {
   final RStore store;
   final List<dynamic> Function()? watch;
   final String? name;
@@ -348,7 +348,7 @@ class RStoreBuilder extends StatefulWidget {
   /// The child widget to pass to the builder, should not be rebuilt
   final Widget? child;
 
-  const RStoreBuilder({
+  const RStoreConsumer({
     required this.store,
     this.builder,
     this.onChange,
@@ -363,10 +363,10 @@ class RStoreBuilder extends StatefulWidget {
         super(key: key);
 
   @override
-  _RStoreBuilderState createState() => _RStoreBuilderState();
+  _RStoreConsumerState createState() => _RStoreConsumerState();
 }
 
-class _RStoreBuilderState extends State<RStoreBuilder> {
+class _RStoreConsumerState extends State<RStoreConsumer> {
   StreamSubscription<List<String>>? _changeStoreSubscription;
   StreamSubscription<bool>? _setStoreSubscription;
   List<dynamic> _lastWatch = [];

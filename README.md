@@ -73,7 +73,7 @@ dependencies:
 (наследник `RStore`).
 
 Добавляем отображение данных в дерево виджетов с помощью билдера
-(например `RStoreBuilder`).
+(например `RStoreWatchBuilder`).
 
 В билдере прописываем за изменениями каких переменных он будет следить
 (список `watch`).
@@ -104,10 +104,10 @@ final store = MyAppStore();
 Widget build(BuildContext context) {
   return Scaffold(
     body: Center(
-      child: RStoreBuilder(
+      child: RStoreWatchBuilder<MyAppStore>(
         store: store,
         watch: () => [store.counter],
-        builder: (context, _) => Text(
+        builder: (context, store) => Text(
           '${store.counter}',
           style: Theme.of(context).textTheme.headline4,
         ),
@@ -163,17 +163,17 @@ class MyWidgetWithRStore extends RStoreWidget<MyAppStore> {
 
 ![](.github/rstore.drawio.png)
 
-## RStoreWatchBuilder и RStoreValueBuilder
+## RStoreBuilder, RStoreValueBuilder и RStoreNamedBuilder
 
 Для того чтобы подписаться на изменения переменных в сторе нужно использовать
 список `watch` - список тех переменных за изменениями которых мы следим и при изменении
-которых нужно перестроить виджет. Задаем его в `RStoreWatchBuilder`:
+которых нужно перестроить виджет. Задаем его в `RStoreBuilder`:
 
 ```dart
-RStoreWatchBuilder(
+RStoreBuilder<MyAppStore>(
   store: store,
-  watch: () => [store.counter],
-  builder: (context, _) {
+  watch: (store) => [store.counter],
+  builder: (context, store) {
     return Text(
       '${store.counter}',
       style: Theme.of(context).textTheme.headline4,
@@ -182,15 +182,19 @@ RStoreWatchBuilder(
 ),
 ```
 
-Для того чтобы подписаться только на одну переменную можно использовать
-шаблон `RStoreValueBuilder`, тут `watch` возвращает уже не список, а только одно значние,
-и это значение также будет передаваться в `builder`:
+Параметр `store` не обязателен, если его не указывать то билдер будет сам
+искать стору в текущем контексте, через `RStoreWidget.store<MyAppStore>(context)`.
+Далее в примерах его указывать не будем.
+
+Часто в виджетах нам требуется следить за изменением только одного значения в сторе
+(как в примере выше), для этого можно использовать шаблон `RStoreValueBuilder`,
+тут `watch` возвращает уже не список, а только одно значние, и это значение
+также будет передаваться в `builder`:
 
 ```dart
-RStoreValueBuilder<int>(
-  store: store,
-  watch: () => store.counter,
-  builder: (context, counter, _) {
+RStoreValueBuilder<MyAppStore, int>(
+  watch: (store) => store.counter,
+  builder: (context, counter) {
     return Text(
       '$counter',
       style: Theme.of(context).textTheme.headline4,
@@ -199,67 +203,15 @@ RStoreValueBuilder<int>(
 ),
 ```
 
-В билдеры можно передать виджет в `child` который не должен ребилдится
-при изменении:
+Также можно сделать билдер который обновляется вручную по `name`
+(в `setStore` можно указать массив `names` - те билдеры которые нужно обновить по имени).
+Для этого используем шаблон `RStoreNamedBuilder`, в нём не будет списка `watch` вообще,
+а вместо него нужно просто указать `name`:
 
 ```dart
-RStoreValueBuilder<int>(
-  store: store,
-  watch: () => store.counter,
-  child: Text('Button has been pressed:'), // not be rebuilt
-  builder: (_, counter, child) {
-    return Column(
-      children: [
-        child,
-        Text('$counter'),
-      ],
-    );
-  },
-),
-```
-
-В билдере можно задать функцию `onChange` которая вызывается при изменении
-watch листа перед `build` (не вызывается при инициализации):
-
-```dart
-RStoreValueBuilder<int>(
-  store: store,
-  watch: () => store.counter,
-  onChange: (context, counter) {
-    // делаем тут что-то полезное
-    // например, Navigator.pop(context)...
-  },
-  builder: (__, counter, _) {
-    return Text('$counter');
-  },
-),
-```
-
-Если нам требудется только следить за изменениями без ребилда, то передаем только `child` и не
-переопределяем `builder`:
-
-```dart
-RStoreValueBuilder<int>(
-  store: store,
-  watch: () => store.counter,
-  onChange: (context, counter) {
-    // делаем тут что-то полезное
-    // например, Navigator.pop(context)...
-  },
-  child: Text('Not be rebuilt'),
-),
-```
-
-## RStoreNamedBuilder - именованные билдеры
-
-Также можно сделать билдер который обновляется вручную по `name`.
-Для этого используем `RStoreNamedBuilder`, а в `setStore` указываем `buildersNames`:
-
-```dart
-RStoreNamedBuilder(
-  store: store,
-  name: 'name of builder',
-  builder: (context, _) {
+RStoreNamedBuilder<MyAppStore>(
+  name: 'counter',
+  builder: (context, store) {
     return Text(
       '${store.counter}',
       style: Theme.of(context).textTheme.headline4,
@@ -270,7 +222,7 @@ RStoreNamedBuilder(
 ...
 
 // update builder by name
-store.setStore(() => store.counter++, ['name of builder']);
+store.setStore(() => store.counter++, ['counter']);
 ```
 
 Именованные билдеры не являются "чистой архитектурой", потому что создают зависимости в
@@ -285,39 +237,103 @@ store.setStore(() => store.counter++, ['name of builder']);
 Имена билдеров задавайте константами в сторе. Лучше задать всё в одном
 месте и использовать от туда, чем копировать одинаковый "магический" текст по коду.
 
-## RStoreContextBuilder, RStoreContextValueBuilder и RStoreContextNamedBuilder
+## RStoreListener, RStoreValueListener и RStoreNamedListener
 
-`RStoreWidget` позволяет использовать билдеры, которые сами находят хранилище в `context`. Можно добавлять
-билдеры как обычно, не доставая предварительно стору из контекста. Стора будет передана дополнительным
-параметром в `watch`, `builder` и в `onChange`:
+Если нам требуется следить за изменением значения в сторе без ребилда, чтобы,
+например, перейти в другой экран при каком-то значении, то нужно использовать
+шаблон `RStoreListener`. В него передаем дочерний виджет `child` и
+определяем `onChange` - что делать при изменении значений в списке `watch`:
 
 ```dart
-RStoreContextBuilder<MyAppStore>(
+RStoreListener<MyAppStore>(
   watch: (store) => [store.counter],
-  builder: (context, store, _) => Text(
-    '${store.counter}',
-    style: Theme.of(context).textTheme.headline4,
-  ),
-)
+  onChange: (context, store) {
+    if (store.counter > 9) {
+      Navigator.of(context).pop()
+    }
+  },
+  child: ...,
+),
+```
 
-RStoreContextValueBuilder<MyAppStore, int>(
+Обратите внимание что функция `onChange` не вызывается при инициализации&
+
+Когда требуется мы можем следить изменением только одного значения с помощью
+шаблона `RStoreValueListener`, где `watch` возвращает уже не список,
+а только одно значние, и это значение также будет передаваться в `onChange`:
+
+```dart
+RStoreValueListener<MyAppStore, int>(
   watch: (store) => store.counter,
-  builder: (context, counter, _) {
-    return Text(
-      '$counter',
-      style: Theme.of(context).textTheme.headline4,
+  onChange: (context, counter) {
+    if (counter > 9) {
+      Navigator.of(context).pop()
+    }
+  },
+  child: ...,
+),
+```
+
+И можно сделать слушатель который обновляется вручную по `name`
+(в `setStore` можно указать массив `names` - те билдеры которые нужно обновить по имени).
+Для этого используем шаблон `RStoreNamedBuilder`, в нём не будет списка `watch` вообще,
+а вместо него нужно просто указать `name`:
+
+```dart
+RStoreNamedListener<MyAppStore>(
+  name: 'counter',
+  onChange: (context, store) {
+    if (store.counter > 9) {
+      Navigator.of(context).pop()
+    }
+  },
+  child: ...,
+),
+
+...
+
+// update listener by name
+store.setStore(() => store.counter++, ['counter']);
+```
+
+Именованные билдеры не являются "чистой архитектурой", так как создает зависимости в обе стороны
+(предостережение аналогичное как в `RStoreNamedBuilder`). Используйте с умом и осторожностью.
+
+## RStoreConsumer
+
+Когда нужен виджет, который объединяет в себе возможности и `RStoreBuilder` и `RStoreListener`
+используем виджет `RStoreConsumer`. Это универсальный солдат: он может и билдится, и следить
+за изменениями, и даже иметь сразу и лист `watch` и `name`. А также в него можно передать
+виджет `child` который не должен ребилдится при изменении:
+
+```dart
+RStoreConsumer(
+  store: store,
+  watch: () => [store.counter],
+  child: Text('Button has been pressed:'), // not be rebuilt
+  builder: (context, child) {
+    return Column(
+      children: [
+        child,
+        Text('${store.counter}'),
+      ],
     );
   },
-)
-
-RStoreContextNamedBuilder<MyAppStore>(
-  name: 'name of builder',
-  builder: (context, store, _) => Text(
-    '${store.counter}',
-    style: Theme.of(context).textTheme.headline4,
-  ),
-)
+  onChange: (context) {
+    if (store.counter > 9) {
+      Navigator.of(context).pop()
+    }
+  },
+),
 ```
+
+Обратите внимание, что стору этому виджету нужно передавать напрямую, он не будет сам
+искать её в контексте. А остальные параметры у него не обязательны, так что
+можно их комбинировать как угодно.
+
+Комбинируя параметры можно добиться такого же поведения как `RStoreBuilder` или
+`RStoreListener`. И на самом деле эти виджеты внутри возвращают `RStoreConsumer`
+и по факту являются оберткой над ним.
 
 ## Дополнительные возможности RStore
 
@@ -533,6 +549,6 @@ and then select the Dart language.
 Под капотом это использует обычную механику Flatter`а:
 
 - RStore - создает стримы которые пушатся по setStore
-- Билдеры - это StatefulWidget`ы которые подписываются на стримы из RStore
+- RStoreConsumer - это StatefulWidget`ы которые подписываются на стримы из RStore
 - Если watch лист изменился то вызывается setState и происходит ребилд (сравнение элементов в watch происходит по ссылке - по этому в RStore надо перезаписывать объект, чтобы подхватилось изменения)
 - RStoreWidget оборачивает RStore в InheritedWidget и добавляет себя в RStore.widget

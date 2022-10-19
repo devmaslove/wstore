@@ -23,10 +23,10 @@ class CounterPage extends RStoreWidget<CounterPageStore> {
   Widget build(BuildContext context, CounterPageStore store) {
     return Scaffold(
       appBar: AppBar(
-        title: RStoreValueBuilder<int>(
+        title: RStoreValueBuilder<CounterPageStore, int>(
             store: store,
-            watch: () => store.counter,
-            builder: (context, counter, _) {
+            watch: (store) => store.counter,
+            builder: (context, counter) {
               return Text('Counter: $counter');
             }),
       ),
@@ -58,9 +58,9 @@ class CountText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RStoreContextValueBuilder<CounterPageStore, int>(
+    return RStoreValueBuilder<CounterPageStore, int>(
       watch: (store) => store.counter,
-      builder: (context, counter, _) {
+      builder: (context, counter) {
         return Text(
           '$counter',
           style: Theme.of(context).textTheme.headline4,

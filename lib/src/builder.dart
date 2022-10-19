@@ -2,207 +2,150 @@ import 'package:flutter/material.dart';
 
 import 'store.dart';
 
-/// [RStoreNamedBuilder] allows you to create widgets that can be updated
-/// manually by name (see [RStore.updateBuildersByNames])
-class RStoreNamedBuilder extends StatelessWidget {
-  final Widget Function(BuildContext context, Widget? child)? builder;
-  final Widget Function(BuildContext context)? onChange;
-  final String name;
-  final RStore store;
-
-  /// The child widget to pass to the builder, should not be rebuilt
-  final Widget? child;
-
-  const RStoreNamedBuilder({
-    Key? key,
-    this.builder,
-    this.onChange,
-    required this.store,
-    required this.name,
-    this.child,
-  })  : assert(name.length > 0, 'name must not be empty string'),
-        super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return RStoreBuilder(
-      builder: builder != null
-          ? (context, child) {
-              return builder!.call(context, child);
-            }
-          : null,
-      onChange: (context) => onChange?.call(context),
-      child: child,
-      name: name,
-      store: store,
-    );
-  }
-}
-
-/// [RStoreContextNamedBuilder] allows you to create widgets that can be updated
-/// manually by name (see [RStore.updateBuildersByNames])
-class RStoreContextNamedBuilder<T extends RStore> extends StatelessWidget {
-  final Widget Function(BuildContext context, T store, Widget? child)? builder;
-  final Widget Function(BuildContext context, T store)? onChange;
-  final String name;
-
-  /// The child widget to pass to the builder, should not be rebuilt
-  final Widget? child;
-
-  const RStoreContextNamedBuilder({
-    Key? key,
-    this.builder,
-    this.onChange,
-    required this.name,
-    this.child,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final store = RStoreWidget.store<T>(context);
-    return RStoreBuilder(
-      builder: builder != null
-          ? (context, child) {
-              return builder!.call(context, store, child);
-            }
-          : null,
-      onChange: (context) => onChange?.call(context, store),
-      child: child,
-      name: name,
-      store: store,
-    );
-  }
-}
-
-class RStoreWatchBuilder extends StatelessWidget {
-  final Widget Function(BuildContext context, Widget? child)? builder;
-  final void Function(BuildContext context)? onChange;
-  final List<dynamic> Function() watch;
-  final RStore store;
-
-  /// The child widget to pass to the builder, should not be rebuilt
-  final Widget? child;
-
-  const RStoreWatchBuilder({
-    Key? key,
-    this.builder,
-    this.onChange,
-    required this.store,
-    required this.watch,
-    this.child,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return RStoreBuilder(
-      builder: builder != null
-          ? (context, child) {
-              return builder!.call(context, child);
-            }
-          : null,
-      onChange: (context) => onChange?.call(context),
-      child: child,
-      watch: watch,
-      store: store,
-    );
-  }
-}
-
-class RStoreValueBuilder<V> extends StatelessWidget {
-  final Widget Function(BuildContext context, V value, Widget? child)? builder;
-  final void Function(BuildContext context, V value)? onChange;
-  final V Function() watch;
-  final RStore store;
-
-  /// The child widget to pass to the builder, should not be rebuilt
-  final Widget? child;
-
-  const RStoreValueBuilder({
-    Key? key,
-    this.builder,
-    this.onChange,
-    required this.store,
-    required this.watch,
-    this.child,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return RStoreBuilder(
-      builder: builder != null
-          ? (context, child) {
-              return builder!.call(context, watch(), child);
-            }
-          : null,
-      onChange: (context) => onChange?.call(context, watch()),
-      child: child,
-      watch: () => [watch()],
-      store: store,
-    );
-  }
-}
-
-class RStoreContextBuilder<T extends RStore> extends StatelessWidget {
-  final Widget Function(BuildContext context, T store, Widget? child)? builder;
-  final void Function(BuildContext context, T store)? onChange;
+class RStoreBuilder<T extends RStore> extends StatelessWidget {
+  final Widget Function(BuildContext context, T store) builder;
   final List<dynamic> Function(T store) watch;
+  final T? store;
 
-  /// The child widget to pass to the builder, should not be rebuilt
-  final Widget? child;
-
-  const RStoreContextBuilder({
+  const RStoreBuilder({
     Key? key,
-    this.builder,
-    this.onChange,
+    required this.builder,
     required this.watch,
-    this.child,
+    this.store,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final store = RStoreWidget.store<T>(context);
-    return RStoreBuilder(
-      builder: builder != null
-          ? (context, child) {
-              return builder!.call(context, store, child);
-            }
-          : null,
-      onChange: (context) => onChange?.call(context, store),
-      child: child,
+    final store = this.store ?? RStoreWidget.store<T>(context);
+    return RStoreConsumer(
+      builder: (context, _) => builder(context, store),
       watch: () => watch(store),
       store: store,
     );
   }
 }
 
-class RStoreContextValueBuilder<T extends RStore, V> extends StatelessWidget {
-  final Widget Function(BuildContext context, V value, Widget? child)? builder;
-  final void Function(BuildContext context, V value)? onChange;
+class RStoreValueBuilder<T extends RStore, V> extends StatelessWidget {
+  final Widget Function(BuildContext context, V value) builder;
   final V Function(T store) watch;
+  final T? store;
 
-  /// The child widget to pass to the builder, should not be rebuilt
-  final Widget? child;
-
-  const RStoreContextValueBuilder({
+  const RStoreValueBuilder({
     Key? key,
-    this.builder,
-    this.onChange,
+    this.store,
+    required this.builder,
     required this.watch,
-    this.child,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final store = this.store ?? RStoreWidget.store<T>(context);
+    return RStoreConsumer(
+      builder: (context, _) => builder(context, watch(store)),
+      watch: () => [watch(store)],
+      store: store,
+    );
+  }
+}
+
+/// [RStoreNamedBuilder] allows you to create widgets that can be updated
+/// manually by name (see [RStore.setStore] buildersNames)
+class RStoreNamedBuilder<T extends RStore> extends StatelessWidget {
+  final Widget Function(BuildContext context, T store) builder;
+  final String name;
+
+  const RStoreNamedBuilder({
+    Key? key,
+    required this.builder,
+    required this.name,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final store = RStoreWidget.store<T>(context);
-    return RStoreBuilder(
-      builder: builder != null
-          ? (context, child) {
-              return builder!.call(context, watch(store), child);
-            }
-          : null,
-      onChange: (context) => onChange?.call(context, watch(store)),
-      child: child,
+    return RStoreConsumer(
+      builder: (context, _) => builder(context, store),
+      name: name,
+      store: store,
+    );
+  }
+}
+
+class RStoreListener<T extends RStore> extends StatelessWidget {
+  final List<dynamic> Function(T store) watch;
+  final Widget child;
+  final T? store;
+  final void Function(BuildContext context, T store) onChange;
+
+  const RStoreListener({
+    Key? key,
+    required this.watch,
+    required this.onChange,
+    required this.child,
+    this.store,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final store = this.store ?? RStoreWidget.store<T>(context);
+    return RStoreConsumer(
       watch: () => [watch(store)],
+      onChange: (context) => onChange(context, store),
+      child: child,
+      store: store,
+    );
+  }
+}
+
+class RStoreValueListener<T extends RStore, V> extends StatelessWidget {
+  final V Function(T store) watch;
+  final Widget child;
+  final T? store;
+  final void Function(BuildContext context, V value) onChange;
+
+  const RStoreValueListener({
+    Key? key,
+    required this.watch,
+    required this.onChange,
+    required this.child,
+    this.store,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final store = this.store ?? RStoreWidget.store<T>(context);
+    return RStoreConsumer(
+      watch: () => [watch(store)],
+      onChange: (context) => onChange(context, watch(store)),
+      child: child,
+      store: store,
+    );
+  }
+}
+
+/// [RStoreNamedListener] allows you to create listener that can be changed
+/// manually by name (see [RStore.setStore] buildersNames)
+class RStoreNamedListener<T extends RStore> extends StatelessWidget {
+  final String name;
+  final Widget child;
+  final T? store;
+  final void Function(BuildContext context, T store) onChange;
+
+  const RStoreNamedListener({
+    Key? key,
+    required this.name,
+    required this.onChange,
+    required this.child,
+    this.store,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final store = this.store ?? RStoreWidget.store<T>(context);
+    return RStoreConsumer(
+      name: name,
+      onChange: (context) => onChange(context, store),
+      child: child,
       store: store,
     );
   }

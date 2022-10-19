@@ -60,10 +60,10 @@ class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
           Container(
             padding: const EdgeInsets.only(top: 10),
             height: 150,
-            child: RStoreValueBuilder<List<Item>>(
+            child: RStoreValueBuilder<StatesReBuilderPageStore, List<Item>>(
               store: store,
-              watch: () => store.items,
-              builder: (context, items, _) => items.isEmpty
+              watch: (store) => store.items,
+              builder: (context, items) => items.isEmpty
                   ? const Center(
                       child: CircularProgressIndicator(),
                     )
@@ -76,10 +76,11 @@ class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: SizedBox(
                             width: 100,
-                            child: RStoreValueBuilder<Item>(
+                            child: RStoreValueBuilder<StatesReBuilderPageStore,
+                                Item>(
                               store: store,
-                              watch: () => store.items[index],
-                              builder: (context, item, _) {
+                              watch: (store) => store.items[index],
+                              builder: (context, item) {
                                 return ItemCard(
                                   item: item,
                                   onTap: () => store.showDetailed(index),
@@ -94,10 +95,10 @@ class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
           ),
           const Divider(),
           Center(
-            child: RStoreValueBuilder<int>(
+            child: RStoreValueBuilder<StatesReBuilderPageStore, int>(
               store: store,
-              watch: () => store.detailedIndex,
-              builder: (context, index, _) => index < 0
+              watch: (store) => store.detailedIndex,
+              builder: (context, index) => index < 0
                   ? SizedBox(
                       width: 200,
                       height: 200,
@@ -118,10 +119,10 @@ class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
                   : SizedBox(
                       width: 200,
                       height: 200,
-                      child: RStoreValueBuilder<Item>(
+                      child: RStoreValueBuilder<StatesReBuilderPageStore, Item>(
                         store: store,
-                        watch: () => store.items[store.detailedIndex],
-                        builder: (context, item, _) {
+                        watch: (store) => store.items[store.detailedIndex],
+                        builder: (context, item) {
                           return ItemCard(
                             item: item,
                             onTap: () => store.increment(),

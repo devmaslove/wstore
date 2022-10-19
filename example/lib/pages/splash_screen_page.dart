@@ -36,9 +36,9 @@ class SplashScreenPage extends RStoreWidget<SplashScreenPageStore> {
     return Scaffold(
       appBar: AppBar(title: const Text('Splash screen')),
       body: Center(
-        child: RStoreValueBuilder<bool>(
+        child: RStoreValueListener<SplashScreenPageStore, bool>(
           store: store,
-          watch: () => store.showNextScreen,
+          watch: (store) => store.showNextScreen,
           onChange: (context, _) => Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (BuildContext context) => const _NextPage(),
