@@ -14,6 +14,7 @@ class RStore {
   final Map<String, dynamic> _composedWatchList = {};
   final Map<String, dynamic> _composedWatchFunc = {};
   final Map<int, Timer> _timers = {};
+  final Map<int, Timer> _debounceTimers = {};
   final Map<int, StreamSubscription> _subscriptions = {};
   RStoreWidget? _widget;
   int _prevId = 0;
@@ -159,6 +160,7 @@ class RStore {
     void Function(Object, StackTrace)? onError,
     void Function()? onDone,
     bool? cancelOnError,
+    final Duration? debounceDuration,
   }) {
     assert(subscriptionId == null || subscriptionId >= 0,
         'subscriptionId must be positive integer');
@@ -167,7 +169,19 @@ class RStore {
     cancelSubscription(subscriptionId: id);
     // create new subscription
     _subscriptions[id] = stream.listen(
-      onData,
+      onData != null
+          ? (value) {
+              if (debounceDuration != null) {
+                _debounceTimers.remove(id)?.cancel();
+                _debounceTimers[id] = Timer(debounceDuration, () {
+                  _debounceTimers.remove(id)?.cancel();
+                  onData(value);
+                });
+              } else {
+                onData(value);
+              }
+            }
+          : null,
       onError: onError,
       onDone: onDone,
       cancelOnError: cancelOnError,
@@ -177,10 +191,13 @@ class RStore {
 
   /// Subscribe to stream
   ///
-  /// Create new stream subscription
+  /// Create new stream subscription.
+  /// You can set msDebounce (number of millisecond)
+  /// to set debounce time.
   int listenStream<V>(
     final Stream<V> stream, {
     final int? id,
+    final int msDebounce = 0,
     required void Function(V) onData,
     void Function(Object, StackTrace)? onError,
   }) {
@@ -190,6 +207,8 @@ class RStore {
       onData: onData,
       onError: onError,
       subscriptionId: id,
+      debounceDuration:
+          msDebounce > 0 ? Duration(milliseconds: msDebounce) : null,
     );
   }
 
@@ -217,6 +236,7 @@ class RStore {
   /// or when created a new one with same subscriptionId
   void cancelSubscription({required final int subscriptionId}) {
     _subscriptions.remove(subscriptionId)?.cancel();
+    _debounceTimers.remove(subscriptionId)?.cancel();
   }
 
   /// Called when [RStoreWidget] is removed from the tree permanently.
@@ -229,11 +249,15 @@ class RStore {
       timer.cancel();
     });
     _timers.clear();
-    // clear all subscriptions
+    // clear all subscriptions with debounceTimers
     _subscriptions.forEach((_, subscription) {
       subscription.cancel();
     });
     _subscriptions.clear();
+    _debounceTimers.forEach((_, timer) {
+      timer.cancel();
+    });
+    _debounceTimers.clear();
   }
 
   void _checkChangeComposed() {
