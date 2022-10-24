@@ -81,3 +81,87 @@ class RStoreNamedListener<T extends RStore> extends StatelessWidget {
     );
   }
 }
+
+class RStoreBoolListener<T extends RStore> extends StatelessWidget {
+  final bool Function(T store) watch;
+  final Widget child;
+  final T? store;
+  final void Function(BuildContext context)? onTrue;
+  final void Function(BuildContext context)? onFalse;
+  final void Function(T store)? reset;
+
+  const RStoreBoolListener({
+    Key? key,
+    required this.watch,
+    this.onTrue,
+    this.onFalse,
+    required this.child,
+    this.store,
+    this.reset,
+  })  : assert(
+            onTrue != null || onFalse != null, 'onTrue or onFalse must be set'),
+        super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final store = this.store ?? RStoreWidget.store<T>(context);
+    return RStoreConsumer(
+      watch: () => [watch(store)],
+      onChange: (context) {
+        final bool value = watch(store);
+        if (value) {
+          if (reset != null) {
+            store.setStore(() => reset!(store));
+          }
+          onTrue?.call(context);
+        } else {
+          onFalse?.call(context);
+        }
+      },
+      child: child,
+      store: store,
+    );
+  }
+}
+
+class RStoreStringListener<T extends RStore> extends StatelessWidget {
+  final String Function(T store) watch;
+  final Widget child;
+  final T? store;
+  final void Function(BuildContext context, String value)? onNotEmpty;
+  final void Function(BuildContext context)? onEmpty;
+  final void Function(T store)? reset;
+
+  const RStoreStringListener({
+    Key? key,
+    required this.watch,
+    this.onNotEmpty,
+    this.onEmpty,
+    required this.child,
+    this.store,
+    this.reset,
+  })  : assert(onNotEmpty != null || onEmpty != null,
+            'onEmpty or onNotEmpty must be set'),
+        super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final store = this.store ?? RStoreWidget.store<T>(context);
+    return RStoreConsumer(
+      watch: () => [watch(store)],
+      onChange: (context) {
+        final String value = watch(store);
+        if (value.isNotEmpty) {
+          if (reset != null) {
+            store.setStore(() => reset!(store));
+          }
+          onNotEmpty?.call(context, value);
+        } else {
+          onEmpty?.call(context);
+        }
+      },
+      child: child,
+      store: store,
+    );
+  }
+}

@@ -246,7 +246,7 @@ store.setStore(() => store.counter++, ['counter']);
 Имена билдеров задавайте константами в сторе. Лучше задать всё в одном
 месте и использовать от туда, чем копировать одинаковый "магический" текст по коду.
 
-## RStoreListener, RStoreValueListener и RStoreNamedListener
+## RStoreListener, RStoreValueListener, RStoreBoolListener, RStoreStringListener и RStoreNamedListener
 
 Если нам требуется следить за изменением значения в сторе без ребилда, чтобы,
 например, перейти в другой экран при каком-то значении, то нужно использовать
@@ -282,6 +282,39 @@ RStoreValueListener<MyAppStore, int>(
   child: ...,
 ),
 ```
+
+Когда нужно, что-то сделать при установке `bool` флага, можно использовать
+готовый шаблон `RStoreBoolListener`. В нем `watch` возвращает `bool` переменную
+за которой следим и вместо передачи этого значение в `onChange` и последующей
+проверки, сразу определяем функцию `onTrue` (или `onFalse`):
+
+```dart
+RStoreBoolListener<MyAppStore>(
+  watch: (store) => store.showNextScreen,
+  onTrue: (context) => Navigator.of(context).push(...),
+  child: ...,
+),
+```
+
+Аналогичная упрощенная форма есть для строк `RStoreStringListener`. В нем `watch`
+возвращает `String` переменную, её значение передаетcz в функцию `onNotEmpty`.
+Также можно определить функцию `onEmpty` - она вызовется когда переменной
+будет присвоена пустая строка:
+
+```dart
+RStoreStringListener<MyAppStore>(
+  watch: (store) => store.showScreen,
+  onNotEmpty: (context, showScreen) => Navigator.of(context).pushNamed(showScreen),
+  reset: (store) => store.showScreen = '',
+  child: ...,
+),
+```
+
+Обратите внивание, в этих двух слушателях также присутствует функция `reset` - её можно
+определить если требуется сбросить значение после срабатывания. Если определена
+функция `reset`, то будет вызвана также `store.setStore`. В примере выше это будет аналогично:
+`store.setStore(() => store.showScreen = '')`, то есть перед `onNotEmpty`, переменная
+`showScreen` будет сброшена.
 
 И можно сделать слушатель который обновляется вручную по `name`
 (в `setStore` можно указать массив `names` - те слушатели которые нужно обновить по имени).
