@@ -10,6 +10,9 @@ class RStore {
   late final Stream<bool> _streamWatchers;
   late final StreamController<List<String>> _controllerNames;
   late final Stream<List<String>> _streamNames;
+  final Map<String, dynamic> _convertedValues = {};
+  final Map<String, StreamSubscription?> _convertedSubscriptions = {};
+  final Map<String, StreamSubscription?> _convertedSubscriptions2 = {};
   final Map<String, dynamic> _composedValues = {};
   final Map<String, dynamic> _composedWatchList = {};
   final Map<String, dynamic> _composedWatchFunc = {};
@@ -82,6 +85,121 @@ class RStore {
     _composedWatchList[keyName] = _cloneWatchList(watch());
     _composedWatchFunc[keyName] = watch;
     return value;
+  }
+
+  V composeStream<V>({
+    required Stream<V> stream,
+    required final V initialData,
+    required final String keyName,
+    final List<String> setStoreNames = const [],
+    void Function(Object, StackTrace)? onError,
+  }) {
+    return composeConverter<V, V>(
+      stream: stream,
+      getValue: (value) => value,
+      initialValue: initialData,
+      keyName: keyName,
+      setStoreNames: setStoreNames,
+      onError: onError,
+    );
+  }
+
+  V composeFuture<V>({
+    required Future<V> future,
+    required final V initialData,
+    required final String keyName,
+    final List<String> setStoreNames = const [],
+    void Function(Object, StackTrace)? onError,
+  }) {
+    return composeConverter<V, V>(
+      stream: future.asStream(),
+      getValue: (value) => value,
+      initialValue: initialData,
+      keyName: keyName,
+      setStoreNames: setStoreNames,
+      onError: onError,
+    );
+  }
+
+  V composeConverter<T, V>({
+    Stream<T>? stream,
+    Future<T>? future,
+    required V Function(T) getValue,
+    required final V initialValue,
+    required final String keyName,
+    final List<String> setStoreNames = const [],
+    void Function(Object, StackTrace)? onError,
+  }) {
+    V? value = _convertedValues[keyName];
+    if (value is V) return value;
+    V oldValue = initialValue;
+    _convertedValues[keyName] = initialValue;
+    assert(!(stream != null && future != null),
+        'Only one must be defined at composeConverter - stream or future');
+    Stream<T>? streamWatch = stream ?? future?.asStream();
+    _convertedSubscriptions[keyName] = streamWatch?.listen(
+      (data) {
+        final V newValue = getValue(data);
+        if (!_isValuesEquals(newValue, oldValue)) {
+          oldValue = newValue;
+          setStore(() => _convertedValues[keyName] = newValue, setStoreNames);
+        }
+      },
+      onError: onError,
+    );
+    return initialValue;
+  }
+
+  V composeConverter2<A, B, V>({
+    Stream<A>? streamA,
+    Future<A>? futureA,
+    Stream<B>? streamB,
+    Future<B>? futureB,
+    required V Function(A, B) getValue,
+    required final V initialValue,
+    required final String keyName,
+    final List<String> setStoreNames = const [],
+    void Function(Object, StackTrace)? onError,
+  }) {
+    V? value = _convertedValues[keyName];
+    if (value is V) return value;
+    V oldValue = initialValue;
+    _convertedValues[keyName] = initialValue;
+    A? dataA;
+    B? dataB;
+    assert(
+        !(streamA != null && futureA != null) &&
+            !(streamB != null && futureB != null),
+        'Only one must be defined at composeConverter2 - stream or future');
+    Stream<A>? streamWatchA = streamA ?? futureA?.asStream();
+    _convertedSubscriptions[keyName] = streamWatchA?.listen(
+      (data) {
+        dataA = data;
+        if (dataA != null && dataB != null) {
+          final V newValue = getValue(dataA!, dataB!);
+          if (!_isValuesEquals(newValue, oldValue)) {
+            oldValue = newValue;
+            setStore(() => _convertedValues[keyName] = newValue, setStoreNames);
+          }
+        }
+      },
+      onError: onError,
+    );
+    Stream<B>? streamWatchB = streamB ?? futureB?.asStream();
+    _convertedSubscriptions2[keyName] = streamWatchB?.listen(
+      (data) {
+        dataB = data;
+        if (dataA != null && dataB != null) {
+          final V newValue = getValue(dataA!, dataB!);
+          if (!_isValuesEquals(newValue, oldValue)) {
+            oldValue = newValue;
+            setStore(() => _convertedValues[keyName] = newValue, setStoreNames);
+          }
+        }
+      },
+      onError: onError,
+    );
+    return initialValue;
   }
 
   /// Create new timer
@@ -258,6 +376,15 @@ class RStore {
       timer.cancel();
     });
     _debounceTimers.clear();
+    // clear all composeConverter subscriptions
+    _convertedSubscriptions.forEach((_, subscription) {
+      subscription?.cancel();
+    });
+    _convertedSubscriptions.clear();
+    _convertedSubscriptions2.forEach((_, subscription) {
+      subscription?.cancel();
+    });
+    _convertedSubscriptions2.clear();
   }
 
   void _checkChangeComposed() {
@@ -287,8 +414,7 @@ class RStore {
   ) {
     if (oldWatch.length == newWatch.length) {
       for (var i = 0; i < oldWatch.length; i++) {
-        // TODO: need deep compare - lists, maps, sets (listEquals)
-        if (oldWatch[i] != newWatch[i]) return true;
+        if (!_isValuesEquals(oldWatch[i], newWatch[i])) return true;
       }
     }
     return false;
@@ -298,6 +424,12 @@ class RStore {
     // TODO: need deep copy - lists, maps, sets
     // List newList = json.decode(json.encode(oldList));
     return [...watchList];
+  }
+
+  static bool _isValuesEquals(dynamic oldValue, dynamic newValue) {
+    // TODO: need deep compare - lists, maps, sets (listEquals)
+    // or maybe add param deep equals?
+    return oldValue == newValue;
   }
 }
 
