@@ -44,7 +44,6 @@ class SplashScreenPage extends RStoreWidget<SplashScreenPageStore> {
               builder: (BuildContext context) => const _NextPage(),
             ),
           ),
-          reset: (store) => store.showNextScreen = false,
           child: const CircularProgressIndicator(),
         ),
       ),
