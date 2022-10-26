@@ -66,12 +66,15 @@ class RStore {
 
   /// Cache values for add to Builders watch lists:
   ///
+  /// ```dart
   /// int storeValue = 1;
+  ///
   /// int get composeValue => compose<int>(
   ///   getValue: () => storeValue + 1,
   ///   watch: () => [storeValue],
-  ///   keyName: "composeValue",
+  ///   keyName: 'composeValue',
   /// );
+  /// ```
   @protected
   V compose<V>({
     required V Function() getValue,
@@ -87,6 +90,18 @@ class RStore {
     return value;
   }
 
+  /// Get value from stream and cache it for add to Builders watch lists:
+  ///
+  /// ```dart
+  /// String get composeStreamValue => composeStream<String>(
+  ///   stream: Stream<String>.value('stream data')
+  ///   initialValue: '',
+  ///   keyName: 'composeStreamValue',
+  /// );
+  /// ```
+  ///
+  /// composeStreamValue gets '', 'stream data'
+  @protected
   V composeStream<V>({
     required Stream<V> stream,
     required final V initialData,
@@ -104,6 +119,18 @@ class RStore {
     );
   }
 
+  /// Get value from future and cache it for add to Builders watch lists:
+  ///
+  /// ```dart
+  /// String get composeFutureValue => composeFuture<String>(
+  ///   future: Future<String>.value('future data')
+  ///   initialValue: '',
+  ///   keyName: 'composeFutureValue',
+  /// );
+  /// ```
+  ///
+  /// composeFutureValue gets '', 'future data'
+  @protected
   V composeFuture<V>({
     required Future<V> future,
     required final V initialData,
@@ -121,6 +148,20 @@ class RStore {
     );
   }
 
+  /// Convert data from stream and cache result value
+  /// for add to Builders watch lists:
+  ///
+  /// ```dart
+  /// String get composeConvertedValue => composeConverter<int, String>(
+  ///   stream: Stream.fromIterable([1, 2, 3])
+  ///   getValue: (data) => '$data',
+  ///   initialValue: '',
+  ///   keyName: 'composeConvertedValue',
+  /// );
+  /// ```
+  ///
+  /// composeConvertedValue gets '', '1', '2', '3'
+  @protected
   V composeConverter<T, V>({
     Stream<T>? stream,
     Future<T>? future,
@@ -150,6 +191,21 @@ class RStore {
     return initialValue;
   }
 
+  /// Convert data from two streams and cache result value
+  /// for add to Builders watch lists:
+  ///
+  /// ```dart
+  /// int get composeConverted2 => composeConverter2<int, int, int>(
+  ///   streamA: Stream<int>.value(1)
+  ///   streamB: Stream<int>.fromIterable([0, 1, 2])
+  ///   getValue: (a, b) => a + b,
+  ///   initialValue: -1,
+  ///   keyName: 'composeConverted2',
+  /// );
+  /// ```
+  ///
+  /// composeConverted2 gets -1, 1, 2, 3
+  @protected
   V composeConverter2<A, B, V>({
     Stream<A>? streamA,
     Future<A>? futureA,
