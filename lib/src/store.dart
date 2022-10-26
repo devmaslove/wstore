@@ -19,6 +19,7 @@ class RStore {
   final Map<int, Timer> _timers = {};
   final Map<int, Timer> _debounceTimers = {};
   final Map<int, StreamSubscription> _subscriptions = {};
+  final Map<int, StreamSubscription> _subscriptions2 = {};
   RStoreWidget? _widget;
   int _prevId = 0;
 
@@ -363,6 +364,73 @@ class RStore {
     return id;
   }
 
+  /// Create new subscription to two streams, and get data by calling the
+  /// [onData] function whenever any of the stream sequences emits an item.
+  ///
+  /// onData will not be called until all streams have emitted at least one
+  /// item.
+  ///
+  /// Subscriptions are automatically canceled when RStore.dispose
+  /// or when created a new one with same subscriptionId
+  int subscribe2<A, B>({
+    required final Stream<A> streamA,
+    required final Stream<B> streamB,
+    required void Function(A, B) onData,
+    final int? subscriptionId,
+    void Function(Object, StackTrace)? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+    final Duration? debounceDuration,
+  }) {
+    assert(subscriptionId == null || subscriptionId >= 0,
+        'subscriptionId must be positive integer');
+    final int id = subscriptionId ?? _getNextID();
+    // cancel old subscription
+    cancelSubscription(subscriptionId: id);
+    // create new subscription
+    A? dataA;
+    B? dataB;
+    _subscriptions[id] = streamA.listen(
+      (data) {
+        dataA = data;
+        if (dataA != null && dataB != null) {
+          if (debounceDuration != null) {
+            _debounceTimers.remove(id)?.cancel();
+            _debounceTimers[id] = Timer(debounceDuration, () {
+              _debounceTimers.remove(id)?.cancel();
+              onData(dataA!, dataB!);
+            });
+          } else {
+            onData(dataA!, dataB!);
+          }
+        }
+      },
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
+    _subscriptions2[id] = streamB.listen(
+      (data) {
+        dataB = data;
+        if (dataA != null && dataB != null) {
+          if (debounceDuration != null) {
+            _debounceTimers.remove(id)?.cancel();
+            _debounceTimers[id] = Timer(debounceDuration, () {
+              _debounceTimers.remove(id)?.cancel();
+              onData(dataA!, dataB!);
+            });
+          } else {
+            onData(dataA!, dataB!);
+          }
+        }
+      },
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
+    return id;
+  }
+
   /// Subscribe to stream
   ///
   /// Create new stream subscription.
@@ -410,6 +478,7 @@ class RStore {
   /// or when created a new one with same subscriptionId
   void cancelSubscription({required final int subscriptionId}) {
     _subscriptions.remove(subscriptionId)?.cancel();
+    _subscriptions2.remove(subscriptionId)?.cancel();
     _debounceTimers.remove(subscriptionId)?.cancel();
   }
 
@@ -428,6 +497,10 @@ class RStore {
       subscription.cancel();
     });
     _subscriptions.clear();
+    _subscriptions2.forEach((_, subscription) {
+      subscription.cancel();
+    });
+    _subscriptions2.clear();
     _debounceTimers.forEach((_, timer) {
       timer.cancel();
     });
