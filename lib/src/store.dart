@@ -95,7 +95,7 @@ class RStore {
   ///
   /// ```dart
   /// String get computedStreamValue => computedFromStream<String>(
-  ///   stream: Stream<String>.value('stream data')
+  ///   stream: Stream<String>.value('stream data'),
   ///   initialValue: '',
   ///   keyName: 'computedStreamValue',
   /// );
@@ -124,7 +124,7 @@ class RStore {
   ///
   /// ```dart
   /// String get computedFutureValue => computedFromFuture<String>(
-  ///   future: Future<String>.value('future data')
+  ///   future: Future<String>.value('future data'),
   ///   initialValue: '',
   ///   keyName: 'computedFutureValue',
   /// );

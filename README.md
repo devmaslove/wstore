@@ -398,10 +398,12 @@ RStoreConsumer(
 
 ## Дополнительные возможности RStore
 
-### computed - самообновляемые зависимые данные
+### computed, computedFromFuture, computedFromStream, computedConverter, computedConverter2
 
-Когда нужно вывести модифицированную информацию из хранилища
-добавляем геттер и оборачиваем в метод `computed`.
+Вычисляемое свойство - `computed` - самообновляемые данные (обновляются при изменении
+зависимостей). Когда нужно вывести модифицированную информацию из хранилища добавляем
+геттер и оборачиваем в метод `computed` который вычисляет нужное значение. С помощью
+`computed` можно вычислять, например, сумму массива или мапить/фильтровать элементы.
 
 Вместо вычисляемого свойства, можно конечно использовать ту же самую функцию в качестве метода.
 Вроде одно и то же. Но есть важное отличие: вычисляемые свойства кэшируются,
@@ -420,7 +422,7 @@ class MyAppStore extends RStore {
   get doubleCounter => computed<int>(
         getValue: () => counter * 2,
         watch: () => [counter],
-        keyName: "doubleCounter",
+        keyName: 'doubleCounter',
       );
 
   void incrementCounter() {
@@ -435,7 +437,59 @@ class MyAppStore extends RStore {
 при каждом обновлении сторы, а пересчитаются только при изменении `counter`. Да,
 кода надо писать порядком, но зато всё прозрачно. 
 
-С помощью `computed` можно вычислять, например, сумму массива или мапить/фильтровать элементы.
+Очень удобно использовать геттеры с `computedFromFuture` и `computedFromStream`, так
+мы future или стрим можем объявить просто как переменную и очень удобно с ней работать.
+При обновлении данных из future или стрима автоматически вызовется `setStore` и все
+зависимости реактивно обновятся.
+
+```dart
+  String get computedStreamValue => computedFromStream<String>(
+    stream: Stream<String>.value('stream data'),
+    initialValue: '',
+    keyName: 'computedStreamValue',
+  );
+
+  String get computedFutureValue => computedFromStream<String>(
+    future: Future<String>.value('future data'),
+    initialValue: '',
+    keyName: 'computedFutureValue',
+  );
+```
+
+Пока данные не поступили в ней будет изначальное значение, его нужно указать в `initialValue`.
+
+Если нужно преобразовать полученные из стрима или future данные перед использованием, можно
+это сделать с помощью `computedConverter`
+
+```dart
+  String get counterString => computedConverter<int, String>(
+    stream: CountersRepository().observeItems(),
+    initialValue: '',
+    getValue: (counter) => '$counter',
+    keyName: 'counterString',
+  );
+```
+
+В данном примере мы получаем `int counter` из стрима и преобразуем его в `String` в `getValue`.
+Конвертеру на вход можно подать как stream так и future, но не оба сразу.
+
+Если нужно из двух источников преобразовать данные в одно целое, можно
+использовать `computedConverter2`
+
+```dart
+  String get counterValue => computedConverter2<int, String, String>(
+    streamA: CountersRepository().observeItems(),
+    futureB: Future<String>.value('Counter'),
+    initialValue: '',
+    getValue: (counter, title) => '$title: $counter',
+    keyName: 'counterValue',
+  );
+```
+
+Тут тоже на вход можно подать как stream так и future - streamA/futureA и streamB/futureB. 
+Данные из них попадут в `getValue` только после того когда оба источника получили
+хотябы по одному элементу, дальше туда будут передаваться посление данные при любом обновлении
+любого источника.
 
 ### setTimer, setTimeout, setInterval и killTimer
 
