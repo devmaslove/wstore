@@ -4,7 +4,7 @@ import 'package:reactive_store/reactive_store.dart';
 class RStoreTest extends RStore {
   String hello = '';
 
-  get sayHello => compose<String>(
+  get sayHello => computed<String>(
         getValue: () => hello + " World",
         watch: () => [hello],
         keyName: 'sayHello',

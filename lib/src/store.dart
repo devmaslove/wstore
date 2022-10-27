@@ -13,9 +13,9 @@ class RStore {
   final Map<String, dynamic> _convertedValues = {};
   final Map<String, StreamSubscription?> _convertedSubscriptions = {};
   final Map<String, StreamSubscription?> _convertedSubscriptions2 = {};
-  final Map<String, dynamic> _composedValues = {};
-  final Map<String, dynamic> _composedWatchList = {};
-  final Map<String, dynamic> _composedWatchFunc = {};
+  final Map<String, dynamic> _computedValues = {};
+  final Map<String, dynamic> _computedWatchList = {};
+  final Map<String, dynamic> _computedWatchFunc = {};
   final Map<int, Timer> _timers = {};
   final Map<int, Timer> _debounceTimers = {};
   final Map<int, StreamSubscription> _subscriptions = {};
@@ -70,47 +70,47 @@ class RStore {
   /// ```dart
   /// int storeValue = 1;
   ///
-  /// int get composeValue => compose<int>(
+  /// int get computedValue => computed<int>(
   ///   getValue: () => storeValue + 1,
   ///   watch: () => [storeValue],
-  ///   keyName: 'composeValue',
+  ///   keyName: 'computedValue',
   /// );
   /// ```
   @protected
-  V compose<V>({
+  V computed<V>({
     required V Function() getValue,
     required List<dynamic> Function() watch,
     required String keyName,
   }) {
-    V? value = _composedValues[keyName];
+    V? value = _computedValues[keyName];
     if (value is V) return value;
     value = getValue();
-    _composedValues[keyName] = value;
-    _composedWatchList[keyName] = _cloneWatchList(watch());
-    _composedWatchFunc[keyName] = watch;
+    _computedValues[keyName] = value;
+    _computedWatchList[keyName] = _cloneWatchList(watch());
+    _computedWatchFunc[keyName] = watch;
     return value;
   }
 
   /// Get value from stream and cache it for add to Builders watch lists:
   ///
   /// ```dart
-  /// String get composeStreamValue => composeStream<String>(
+  /// String get computedStreamValue => computedFromStream<String>(
   ///   stream: Stream<String>.value('stream data')
   ///   initialValue: '',
-  ///   keyName: 'composeStreamValue',
+  ///   keyName: 'computedStreamValue',
   /// );
   /// ```
   ///
-  /// composeStreamValue gets '', 'stream data'
+  /// computedStreamValue gets '', 'stream data'
   @protected
-  V composeStream<V>({
+  V computedFromStream<V>({
     required Stream<V> stream,
     required final V initialData,
     required final String keyName,
     final List<String> setStoreNames = const [],
     void Function(Object, StackTrace)? onError,
   }) {
-    return composeConverter<V, V>(
+    return computedConverter<V, V>(
       stream: stream,
       getValue: (value) => value,
       initialValue: initialData,
@@ -123,23 +123,23 @@ class RStore {
   /// Get value from future and cache it for add to Builders watch lists:
   ///
   /// ```dart
-  /// String get composeFutureValue => composeFuture<String>(
+  /// String get computedFutureValue => computedFromFuture<String>(
   ///   future: Future<String>.value('future data')
   ///   initialValue: '',
-  ///   keyName: 'composeFutureValue',
+  ///   keyName: 'computedFutureValue',
   /// );
   /// ```
   ///
-  /// composeFutureValue gets '', 'future data'
+  /// computedFutureValue gets '', 'future data'
   @protected
-  V composeFuture<V>({
+  V computedFromFuture<V>({
     required Future<V> future,
     required final V initialData,
     required final String keyName,
     final List<String> setStoreNames = const [],
     void Function(Object, StackTrace)? onError,
   }) {
-    return composeConverter<V, V>(
+    return computedConverter<V, V>(
       stream: future.asStream(),
       getValue: (value) => value,
       initialValue: initialData,
@@ -153,17 +153,17 @@ class RStore {
   /// for add to Builders watch lists:
   ///
   /// ```dart
-  /// String get composeConvertedValue => composeConverter<int, String>(
+  /// String get computedConvertedValue => computedConverter<int, String>(
   ///   stream: Stream.fromIterable([1, 2, 3])
   ///   getValue: (data) => '$data',
   ///   initialValue: '',
-  ///   keyName: 'composeConvertedValue',
+  ///   keyName: 'computedConvertedValue',
   /// );
   /// ```
   ///
-  /// composeConvertedValue gets '', '1', '2', '3'
+  /// computedConvertedValue gets '', '1', '2', '3'
   @protected
-  V composeConverter<T, V>({
+  V computedConverter<T, V>({
     Stream<T>? stream,
     Future<T>? future,
     required V Function(T) getValue,
@@ -177,7 +177,7 @@ class RStore {
     V oldValue = initialValue;
     _convertedValues[keyName] = initialValue;
     assert(!(stream != null && future != null),
-        'Only one must be defined at composeConverter - stream or future');
+        'Only one must be defined at computedConverter - stream or future');
     Stream<T>? streamWatch = stream ?? future?.asStream();
     _convertedSubscriptions[keyName] = streamWatch?.listen(
       (data) {
@@ -196,18 +196,18 @@ class RStore {
   /// for add to Builders watch lists:
   ///
   /// ```dart
-  /// int get composeConverted2 => composeConverter2<int, int, int>(
+  /// int get computedConverted2 => computedConverter2<int, int, int>(
   ///   streamA: Stream<int>.value(1)
   ///   streamB: Stream<int>.fromIterable([0, 1, 2])
   ///   getValue: (a, b) => a + b,
   ///   initialValue: -1,
-  ///   keyName: 'composeConverted2',
+  ///   keyName: 'computedConverted2',
   /// );
   /// ```
   ///
-  /// composeConverted2 gets -1, 1, 2, 3
+  /// computedConverted2 gets -1, 1, 2, 3
   @protected
-  V composeConverter2<A, B, V>({
+  V computedConverter2<A, B, V>({
     Stream<A>? streamA,
     Future<A>? futureA,
     Stream<B>? streamB,
@@ -227,7 +227,7 @@ class RStore {
     assert(
         !(streamA != null && futureA != null) &&
             !(streamB != null && futureB != null),
-        'Only one must be defined at composeConverter2 - stream or future');
+        'Only one must be defined at computedConverter2 - stream or future');
     Stream<A>? streamWatchA = streamA ?? futureA?.asStream();
     _convertedSubscriptions[keyName] = streamWatchA?.listen(
       (data) {
@@ -505,7 +505,7 @@ class RStore {
       timer.cancel();
     });
     _debounceTimers.clear();
-    // clear all composeConverter subscriptions
+    // clear all computedConverter subscriptions
     _convertedSubscriptions.forEach((_, subscription) {
       subscription?.cancel();
     });
@@ -518,17 +518,17 @@ class RStore {
 
   void _checkChangeComposed() {
     final List<String> removedKeys = [];
-    _composedWatchList.forEach((key, value) {
+    _computedWatchList.forEach((key, value) {
       List<dynamic> oldWatch = value;
-      List<dynamic> newWatch = _composedWatchFunc[key]?.call() ?? const [];
+      List<dynamic> newWatch = _computedWatchFunc[key]?.call() ?? const [];
       if (_isWatchValuesUpdates(oldWatch, newWatch)) {
-        _composedValues.remove(key);
-        _composedWatchFunc.remove(key);
+        _computedValues.remove(key);
+        _computedWatchFunc.remove(key);
         removedKeys.add(key);
       }
     });
     for (final key in removedKeys) {
-      _composedWatchList.remove(key);
+      _computedWatchList.remove(key);
     }
   }
 

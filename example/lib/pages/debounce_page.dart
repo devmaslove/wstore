@@ -6,7 +6,7 @@ class DebouncePageStore extends RStore {
   String searchText = '';
   String inputText = '';
 
-  bool get isEmptyInputText => compose<bool>(
+  bool get isEmptyInputText => computed<bool>(
         getValue: () => inputText.isEmpty,
         watch: () => [inputText],
         keyName: "isEmptyInputText",
