@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:reactive_store/reactive_store.dart';
+import 'package:rstore/rstore.dart';
 
 class CounterPageStore extends RStore {
   int counter = 0;

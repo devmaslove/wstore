@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:reactive_store/reactive_store.dart';
+import 'package:rstore/rstore.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Item {

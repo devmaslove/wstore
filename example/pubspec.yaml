@@ -1,5 +1,5 @@
 name: example
-description: A example of reactive_store project.
+description: A example of rstore project
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -9,11 +9,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  reactive_store:
+  rstore:
     path: ../
 
   cupertino_icons: ^1.0.5
-  url_launcher: ^6.1.3
+  url_launcher: ^6.1.6
 
 dev_dependencies:
   flutter_test:

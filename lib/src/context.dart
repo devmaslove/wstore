@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'store.dart';
 
 /// Exposes the [store] method.
-extension ReactiveStoreContext on BuildContext {
+extension RStoreContext on BuildContext {
   /// Obtains the nearest [RStoreWidget] up its widget tree
   /// and returns its store.
   ///

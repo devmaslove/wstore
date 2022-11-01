@@ -90,16 +90,16 @@ RStore - это библиотека для state management во Flutter.
 
 ```yaml
 dependencies:
-  reactive_store: <latest_version>
+  rstore: <latest_version>
 ```
 
 Или загрузить самую последнюю версию прямо с GitHub:
 
 ```yaml
 dependencies:
-  reactive_store:
+  rstore:
     git:
-      url: https://github.com/devmaslove/reactive_store
+      url: https://github.com/devmaslove/rstore
 ```
 
 ## Использование
@@ -645,7 +645,7 @@ subscribe2<int, String>(
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:reactive_store/reactive_store.dart';
+import 'package:rstore/rstore.dart';
 
 class $STORE_NAME$ extends RStore {
   // TODO: add data here...
@@ -695,7 +695,7 @@ and then select the Dart language.
     "prefix": "rsw",
     "body": [
       "import 'package:flutter/material.dart';",
-      "import 'package:reactive_store/reactive_store.dart';",
+      "import 'package:rstore/rstore.dart';",
       "",
       "class $1Store extends RStore {",
       "\t// TODO: add data here...",

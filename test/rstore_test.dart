@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:reactive_store/reactive_store.dart';
+import 'package:rstore/rstore.dart';
 
 class RStoreTest extends RStore {
   String hello = '';
 
   get sayHello => computed<String>(
-        getValue: () => hello + " World",
+        getValue: () => "$hello World",
         watch: () => [hello],
         keyName: 'sayHello',
       );

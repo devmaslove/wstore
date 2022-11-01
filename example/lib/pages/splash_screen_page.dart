@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:reactive_store/reactive_store.dart';
+import 'package:rstore/rstore.dart';
 
 class SplashScreenPageStore extends RStore {
   static const _timerIdNextScreen = 0;

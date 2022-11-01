@@ -1,4 +1,4 @@
-library reactive_store;
+library rstore;
 
 export 'src/builder.dart';
 export 'src/context.dart';

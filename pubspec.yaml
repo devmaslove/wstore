@@ -1,7 +1,7 @@
-name: reactive_store
+name: rstore
 description: A state management library that helps add reactivity to widgets
 version: 1.0.0
-repository: https://github.com/devmaslove/reactive_store
+repository: https://github.com/devmaslove/rstore
 
 environment:
   sdk: ">=2.16.2 <3.0.0"
@@ -15,5 +15,3 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.1
-
-flutter:

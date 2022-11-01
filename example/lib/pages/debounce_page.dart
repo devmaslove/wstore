@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:reactive_store/reactive_store.dart';
+import 'package:rstore/rstore.dart';
 
 class DebouncePageStore extends RStore {
   static const _timerIdSearchText = 0;
