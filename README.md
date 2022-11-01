@@ -90,6 +90,13 @@ RStore - это библиотека для state management во Flutter.
 
 ```yaml
 dependencies:
+  reactive_store: <latest_version>
+```
+
+Или загрузить самую последнюю версию прямо с GitHub:
+
+```yaml
+dependencies:
   reactive_store:
     git:
       url: https://github.com/devmaslove/reactive_store
@@ -752,3 +759,16 @@ and then select the Dart language.
 - RStoreConsumer - это StatefulWidget`ы которые подписываются на стримы из RStore
 - Если watch лист изменился то вызывается setState и происходит ребилд (сравнение элементов в watch происходит по ссылке - по этому в RStore надо перезаписывать объект, чтобы подхватилось изменения)
 - RStoreWidget оборачивает RStore в InheritedWidget и добавляет себя в RStore.widget
+
+## Как внести свой вклад
+
+Хотите внести свой вклад в проект? Вот чем вы можете помоч проекту:
+
+- Помощь в переводе readme на английский язык
+- Добавление документации и примеров по коду и в readme
+- Нужны статьи или обучающие видео, пишите, добавим в readme
+- Нужны локаничные примеры использования (добавим в example)
+- Pull request'ы на GitHub (документация, тесты, правки, новые фичи)
+- Предлагайте новые фичи, спраивайте как применять, помогайте применять другим
+
+Приветствуется любой вклад!

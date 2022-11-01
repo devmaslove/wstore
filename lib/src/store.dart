@@ -648,7 +648,7 @@ class RStoreConsumer extends StatefulWidget {
         super(key: key);
 
   @override
-  _RStoreConsumerState createState() => _RStoreConsumerState();
+  State<RStoreConsumer> createState() => _RStoreConsumerState();
 }
 
 class _RStoreConsumerState extends State<RStoreConsumer> {

@@ -22,8 +22,8 @@ class RStoreListener<T extends RStore> extends StatelessWidget {
     return RStoreConsumer(
       watch: () => [watch(store)],
       onChange: (context) => onChange(context, store),
-      child: child,
       store: store,
+      child: child,
     );
   }
 }
@@ -48,8 +48,8 @@ class RStoreValueListener<T extends RStore, V> extends StatelessWidget {
     return RStoreConsumer(
       watch: () => [watch(store)],
       onChange: (context) => onChange(context, watch(store)),
-      child: child,
       store: store,
+      child: child,
     );
   }
 }
@@ -76,8 +76,8 @@ class RStoreNamedListener<T extends RStore> extends StatelessWidget {
     return RStoreConsumer(
       name: name,
       onChange: (context) => onChange(context, store),
-      child: child,
       store: store,
+      child: child,
     );
   }
 }
@@ -118,8 +118,8 @@ class RStoreBoolListener<T extends RStore> extends StatelessWidget {
           onFalse?.call(context);
         }
       },
-      child: child,
       store: store,
+      child: child,
     );
   }
 }
@@ -160,8 +160,8 @@ class RStoreStringListener<T extends RStore> extends StatelessWidget {
           onEmpty?.call(context);
         }
       },
-      child: child,
       store: store,
+      child: child,
     );
   }
 }
