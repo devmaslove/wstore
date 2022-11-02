@@ -90,16 +90,16 @@ WStore - это библиотека для state management во Flutter.
 
 ```yaml
 dependencies:
-  rstore: <latest_version>
+  wstore: <latest_version>
 ```
 
 Или загрузить самую последнюю версию прямо с GitHub:
 
 ```yaml
 dependencies:
-  rstore:
+  wstore:
     git:
-      url: https://github.com/devmaslove/rstore
+      url: https://github.com/devmaslove/wstore
 ```
 
 ## Использование
@@ -197,7 +197,7 @@ class MyWidgetWithWStore extends WStoreWidget<MyAppStore> {
 
 Всю схему работы можно представить так:
 
-![](.github/rstore.drawio.png)
+![](.github/wstore.drawio.png)
 
 ## WStoreBuilder, WStoreValueBuilder и WStoreNamedBuilder
 
@@ -645,7 +645,7 @@ subscribe2<int, String>(
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:rstore/wstore.dart';
+import 'package:wstore/wstore.dart';
 
 class $STORE_NAME$ extends WStore {
   // TODO: add data here...
@@ -675,7 +675,7 @@ class $NAME$ extends WStoreWidget<$STORE_NAME$> {
 
 Где:
 
-- Абреввиатура `rsw` - New WStore widget
+- Абреввиатура `wsw` - New WStore widget
 - `Applicable context` - равно `Applicable in Dart: top-level.`
 - `NAME` - начальная точка
 - `WIDGET_NAME` - равно `NAME` + skip if defined
@@ -692,10 +692,10 @@ and then select the Dart language.
 ```json
 {
   "New WStore widget": {
-    "prefix": "rsw",
+    "prefix": "wsw",
     "body": [
       "import 'package:flutter/material.dart';",
-      "import 'package:rstore/wstore.dart';",
+      "import 'package:wstore/wstore.dart';",
       "",
       "class $1Store extends WStore {",
       "\t// TODO: add data here...",
@@ -748,8 +748,8 @@ and then select the Dart language.
 узнают что что-то внутри объекта изменилось. Для совсем сложной логики и данных можно использовать
 именованные билдеры, но лучше от этой практики воздерживаться.
 
-**Большую стору выносите в отдельный файл .rstore.dart** Так видно где лежит стора и к какому
-виджету/экрану она принадлежит (будет что то вроде `мой_виджет.rstore.dart`)
+**Большую стору выносите в отдельный файл .wstore.dart** Так видно где лежит стора и к какому
+виджету/экрану она принадлежит (будет что то вроде `мой_виджет.wstore.dart`)
 
 ## Как это сделано
 
