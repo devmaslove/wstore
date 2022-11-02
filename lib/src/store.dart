@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'error.dart';
 import 'inherited.dart';
 
-class RStore {
+class WStore {
   late final StreamController<bool> _controllerWatchers;
   late final Stream<bool> _streamWatchers;
   late final StreamController<List<String>> _controllerNames;
@@ -20,20 +20,20 @@ class RStore {
   final Map<int, Timer> _debounceTimers = {};
   final Map<int, StreamSubscription> _subscriptions = {};
   final Map<int, StreamSubscription> _subscriptions2 = {};
-  RStoreWidget? _widget;
+  WStoreWidget? _widget;
   int _prevId = 0;
 
-  /// Get [RStoreWidget] associated with this store.
+  /// Get [WStoreWidget] associated with this store.
   @protected
-  RStoreWidget get widget {
+  WStoreWidget get widget {
     if (_widget == null) {
-      throw RStoreNotFoundError(RStore, RStoreWidget, "Widget");
+      throw WStoreNotFoundError(WStore, WStoreWidget, "Widget");
     }
     return _widget!;
   }
 
   /// Creates a reactive store.
-  RStore() {
+  WStore() {
     _controllerWatchers = StreamController.broadcast();
     _streamWatchers = _controllerWatchers.stream;
     _controllerNames = StreamController<List<String>>.broadcast();
@@ -261,7 +261,7 @@ class RStore {
 
   /// Create new timer
   ///
-  /// Timers are automatically canceled when RStore.dispose
+  /// Timers are automatically canceled when WStore.dispose
   /// or when created a new one with same timerId
   /// (сan be used to set debounce time e.g.)
   int setTimer({
@@ -288,7 +288,7 @@ class RStore {
 
   /// Create new non periodic timer
   ///
-  /// Timers are automatically canceled when RStore.dispose
+  /// Timers are automatically canceled when WStore.dispose
   /// or when created a new one with same timerId
   /// (сan be used to set debounce time e.g.)
   int setTimeout(VoidCallback onTimer, int milliseconds, [int? timerId]) {
@@ -303,7 +303,7 @@ class RStore {
 
   /// Create new periodic timer
   ///
-  /// Timers are automatically canceled when RStore.dispose
+  /// Timers are automatically canceled when WStore.dispose
   /// or when created a new one with same timerId
   /// (сan be used to set debounce time e.g.)
   int setInterval(VoidCallback onTimer, int milliseconds, [int? timerId]) {
@@ -318,7 +318,7 @@ class RStore {
 
   /// Cancel timer by timerID
   ///
-  /// killTimer called when RStore.dispose
+  /// killTimer called when WStore.dispose
   /// or when created a new one with same timerId
   void killTimer({required final int timerId}) {
     _timers.remove(timerId)?.cancel();
@@ -326,7 +326,7 @@ class RStore {
 
   /// Create new stream subscription
   ///
-  /// Subscriptions are automatically canceled when RStore.dispose
+  /// Subscriptions are automatically canceled when WStore.dispose
   /// or when created a new one with same subscriptionId
   int subscribe<V>({
     required final Stream<V> stream,
@@ -370,7 +370,7 @@ class RStore {
   /// onData will not be called until all streams have emitted at least one
   /// item.
   ///
-  /// Subscriptions are automatically canceled when RStore.dispose
+  /// Subscriptions are automatically canceled when WStore.dispose
   /// or when created a new one with same subscriptionId
   int subscribe2<A, B>({
     required final Stream<A> streamA,
@@ -474,7 +474,7 @@ class RStore {
 
   /// Cancel subscription by subscriptionID
   ///
-  /// cancelSubscription called when RStore.dispose
+  /// cancelSubscription called when WStore.dispose
   /// or when created a new one with same subscriptionId
   void cancelSubscription({required final int subscriptionId}) {
     _subscriptions.remove(subscriptionId)?.cancel();
@@ -482,7 +482,7 @@ class RStore {
     _debounceTimers.remove(subscriptionId)?.cancel();
   }
 
-  /// Called when [RStoreWidget] is removed from the tree permanently.
+  /// Called when [WStoreWidget] is removed from the tree permanently.
   @mustCallSuper
   void dispose() {
     // clear widget
@@ -562,44 +562,44 @@ class RStore {
   }
 }
 
-abstract class RStoreWidget<T extends RStore> extends StatefulWidget {
-  const RStoreWidget({Key? key}) : super(key: key);
+abstract class WStoreWidget<T extends WStore> extends StatefulWidget {
+  const WStoreWidget({Key? key}) : super(key: key);
 
   @protected
   Widget build(BuildContext context, T store);
 
-  /// Creates the [RStore] for this widget
+  /// Creates the [WStore] for this widget
   @protected
-  T createRStore();
+  T createWStore();
 
-  /// Will be called once after the widget has been mounted to RStore.
+  /// Will be called once after the widget has been mounted to WStore.
   @protected
-  void initRStore(T store) {}
+  void initWStore(T store) {}
 
   @override
-  State<RStoreWidget<T>> createState() => _RStoreWidgetState<T>();
+  State<WStoreWidget<T>> createState() => _WStoreWidgetState<T>();
 
-  /// Obtains the nearest [RStoreWidget] up its widget tree
+  /// Obtains the nearest [WStoreWidget] up its widget tree
   /// and returns its store.
-  static T store<T extends RStore>(BuildContext context) {
+  static T store<T extends WStore>(BuildContext context) {
     var widget = context
-        .getElementForInheritedWidgetOfExactType<InheritedRStore<T>>()
+        .getElementForInheritedWidgetOfExactType<InheritedWStore<T>>()
         ?.widget;
     if (widget == null) {
-      throw RStoreNotFoundError(T, context.widget.runtimeType, '');
+      throw WStoreNotFoundError(T, context.widget.runtimeType, '');
     } else {
-      return (widget as InheritedRStore<T>).store;
+      return (widget as InheritedWStore<T>).store;
     }
   }
 }
 
-class _RStoreWidgetState<T extends RStore> extends State<RStoreWidget<T>> {
+class _WStoreWidgetState<T extends WStore> extends State<WStoreWidget<T>> {
   late T store;
   bool initStore = false;
 
   @override
   void initState() {
-    store = widget.createRStore();
+    store = widget.createWStore();
     super.initState();
   }
 
@@ -614,17 +614,17 @@ class _RStoreWidgetState<T extends RStore> extends State<RStoreWidget<T>> {
     store._widget = widget;
     if (!initStore) {
       initStore = true;
-      widget.initRStore(store);
+      widget.initWStore(store);
     }
-    return InheritedRStore<T>(
+    return InheritedWStore<T>(
       store: store,
       child: widget.build(context, store),
     );
   }
 }
 
-class RStoreConsumer extends StatefulWidget {
-  final RStore store;
+class WStoreConsumer extends StatefulWidget {
+  final WStore store;
   final List<dynamic> Function()? watch;
   final String? name;
   final Widget Function(BuildContext context, Widget? child)? builder;
@@ -633,7 +633,7 @@ class RStoreConsumer extends StatefulWidget {
   /// The child widget to pass to the builder, should not be rebuilt
   final Widget? child;
 
-  const RStoreConsumer({
+  const WStoreConsumer({
     required this.store,
     this.builder,
     this.onChange,
@@ -648,10 +648,10 @@ class RStoreConsumer extends StatefulWidget {
         super(key: key);
 
   @override
-  State<RStoreConsumer> createState() => _RStoreConsumerState();
+  State<WStoreConsumer> createState() => _WStoreConsumerState();
 }
 
-class _RStoreConsumerState extends State<RStoreConsumer> {
+class _WStoreConsumerState extends State<WStoreConsumer> {
   StreamSubscription<List<String>>? _changeStoreSubscription;
   StreamSubscription<bool>? _setStoreSubscription;
   List<dynamic> _lastWatch = [];
@@ -673,13 +673,13 @@ class _RStoreConsumerState extends State<RStoreConsumer> {
     }
 
     if (widget.watch != null) {
-      _lastWatch = RStore._cloneWatchList(widget.watch!());
+      _lastWatch = WStore._cloneWatchList(widget.watch!());
       _setStoreSubscription = widget.store._streamWatchers.listen((_) {
         if (_lastWatch.isNotEmpty && mounted) {
           List<dynamic> nowWatch = widget.watch!();
-          if (RStore._isWatchValuesUpdates(_lastWatch, nowWatch)) {
+          if (WStore._isWatchValuesUpdates(_lastWatch, nowWatch)) {
             widget.onChange?.call(context);
-            _lastWatch = RStore._cloneWatchList(nowWatch);
+            _lastWatch = WStore._cloneWatchList(nowWatch);
             // check mounted because onChange can unmount
             if (mounted && widget.builder != null) setState(() {});
           }

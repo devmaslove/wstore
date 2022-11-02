@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:rstore/rstore.dart';
+import 'package:wstore/wstore.dart';
 
-class DebouncePageStore extends RStore {
+class DebouncePageStore extends WStore {
   static const _timerIdSearchText = 0;
   String searchText = '';
   String inputText = '';
@@ -23,7 +23,7 @@ class DebouncePageStore extends RStore {
   }
 }
 
-class DebouncePage extends RStoreWidget<DebouncePageStore> {
+class DebouncePage extends WStoreWidget<DebouncePageStore> {
   const DebouncePage({super.key});
 
   @override
@@ -35,7 +35,7 @@ class DebouncePage extends RStoreWidget<DebouncePageStore> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              RStoreValueBuilder<DebouncePageStore, String>(
+              WStoreValueBuilder<DebouncePageStore, String>(
                 store: store,
                 watch: (store) => store.searchText,
                 builder: (context, text) {
@@ -43,7 +43,7 @@ class DebouncePage extends RStoreWidget<DebouncePageStore> {
                 },
               ),
               const SizedBox(height: 20),
-              RStoreValueBuilder<DebouncePageStore, bool>(
+              WStoreValueBuilder<DebouncePageStore, bool>(
                 store: store,
                 watch: (store) => store.isEmptyInputText,
                 builder: (context, isEmpty) {
@@ -61,7 +61,7 @@ class DebouncePage extends RStoreWidget<DebouncePageStore> {
   }
 
   @override
-  DebouncePageStore createRStore() => DebouncePageStore();
+  DebouncePageStore createWStore() => DebouncePageStore();
 }
 
 class _SearchField extends StatelessWidget {

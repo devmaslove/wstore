@@ -1,5 +1,5 @@
 name: example
-description: A example of rstore project
+description: A example of wstore project
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  rstore:
+  wstore:
     path: ../
 
   cupertino_icons: ^1.0.5

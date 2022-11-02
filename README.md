@@ -1,6 +1,6 @@
-# RStore
+# WStore
 
-RStore - это библиотека для state management во Flutter.
+WStore - это библиотека для state management во Flutter.
 
 ## Ключевые особенности
 
@@ -15,13 +15,13 @@ RStore - это библиотека для state management во Flutter.
 - Обновления состояния по `setStore`, аналогично как `setState`
 
 3. Работает стандартно, как принято во Flutter, без всякой скрытой магии:
-- Зависимые от `RStore` виджеты строятся через `RStoreBuilder`
-- `RStoreWidget` - позволяет создавать виджеты со встроенной `RStore` (аналогично как `StatefullWidget`)
+- Зависимые от `WStore` виджеты строятся через `WStoreBuilder`
+- `WStoreWidget` - позволяет создавать виджеты со встроенной `WStore` (аналогично как `StatefullWidget`)
 - Механика очень схожа с `ValueListenableBuilder` и `ValueNotifier`
-- Механика `RStoreBuilder`, `RStoreListener` и `RStoreConsumer` схожа с аналогичными виджетами в `bloc`
+- Механика `WStoreBuilder`, `WStoreListener` и `WStoreConsumer` схожа с аналогичными виджетами в `bloc`
 
 4. Легко прокидывать калбеки и входящие параметры головного виджета по дереву дочерних виджетов
-- Через `RStore.widget` везде есть доступ к головному виджету
+- Через `WStore.widget` везде есть доступ к головному виджету
 
 5. Встроенная упрощенная работа с таймерами:
 - создание и отмена таймеров по id
@@ -38,16 +38,16 @@ RStore - это библиотека для state management во Flutter.
 - можно подписаться на future (и не переживать что оно что-то будет пытаться обновить после dispose)
 - можно подписаться на получения данных из двух потоков одновременно, для того чтобы их комбирировать (аналог `Rx.combineLatest2`)
 
-Основная задача `RStore` приобразовать данные, чтобы их можно было
+Основная задача `WStore` приобразовать данные, чтобы их можно было
 просто поместить на экран. Это его предназначение, на большее он не претендует.
 Он не создан для общей логики всего приложения или нескольких экранов. Только
 для внутреннего состояния конкретных виджетов.
 
-Также `RStore` не претендует на роль полной замены других инструментов, на экономичность
+Также `WStore` не претендует на роль полной замены других инструментов, на экономичность
 к ресурсам и какое-то сверх быстродействие вычислений. Если ваш проект в это упирается,
 то смело используйте другие инструменты или комбинируйте с ними, какие то вещи делайте
 более тонко вручную, а не пытайтесь забить гвоздь микроскопом. Но в подавляющем большинстве
-этого не требуется. Применяйте `RStore` к месту, а её место это стейт менеджмент
+этого не требуется. Применяйте `WStore` к месту, а её место это стейт менеджмент
 сложносоставного виджета, чаще всего экрана/страницы.
 
 ## Концепция
@@ -105,10 +105,10 @@ dependencies:
 ## Использование
 
 Создаем класс с данными - много разных переменных
-(наследник `RStore`). Далее просто "стора".
+(наследник `WStore`). Далее просто "стора".
 
 Добавляем отображение данных в дерево виджетов с помощью билдера
-(например `RStoreBuilder`).
+(например `WStoreBuilder`).
 
 В билдере прописываем за изменениями каких переменных он будет следить
 (список `watch`).
@@ -119,7 +119,7 @@ dependencies:
 Создаем класс с данными:
 
 ```dart
-class MyAppStore extends RStore {
+class MyAppStore extends WStore {
   int counter = 0;
 
   void incrementCounter() {
@@ -139,7 +139,7 @@ final store = MyAppStore();
 Widget build(BuildContext context) {
   return Scaffold(
     body: Center(
-      child: RStoreBuilder<MyAppStore>(
+      child: WStoreBuilder<MyAppStore>(
         store: store,
         watch: (store) => [store.counter],
         builder: (context, store) => Text(
@@ -156,14 +156,14 @@ Widget build(BuildContext context) {
 }
 ```
 
-## RStoreWidget
+## WStoreWidget
 
-Для удобства создания виджетов со сторой сделан `RStoreWidget`:
+Для удобства создания виджетов со сторой сделан `WStoreWidget`:
 
 ```dart
-class MyWidgetWithRStore extends RStoreWidget<MyAppStore> {
+class MyWidgetWithWStore extends WStoreWidget<MyAppStore> {
   @override
-  MyAppStore createRStore() => MyAppStore();
+  MyAppStore createWStore() => MyAppStore();
   
   @override
   Widget build(BuildContext context, MyAppStore store) {
@@ -171,26 +171,26 @@ class MyWidgetWithRStore extends RStoreWidget<MyAppStore> {
   }
 
   @protected
-  void initRStore(MyAppStore store) {
+  void initWStore(MyAppStore store) {
     store.init();
     ...
   }
 }
 ```
 
-Он уже содержит в себе `RStore`, который создается в методе `createRStore` -
-этот метод обязателен для переопределения. Когда `RStore` создается через него,
-то он дополнительно получает доступ к этому виджету `RStore.widget` после того,
+Он уже содержит в себе `WStore`, который создается в методе `createWStore` -
+этот метод обязателен для переопределения. Когда `WStore` создается через него,
+то он дополнительно получает доступ к этому виджету `WStore.widget` после того,
 как виджет будет смонтирован.
 
-Если нужно как-то, дополнительно проинициализировать `RStore` после того как виджет
-будет смонтирован, можно переопределить метод `initRStore`. В нем можно быть уверенным, что
-`RStore` уже получил доступ к виджету. Переопределяется, при необходимости. Но обычно
-хватает каскадного овператора `..` в `createRStore`.
+Если нужно как-то, дополнительно проинициализировать `WStore` после того как виджет
+будет смонтирован, можно переопределить метод `initWStore`. В нем можно быть уверенным, что
+`WStore` уже получил доступ к виджету. Переопределяется, при необходимости. Но обычно
+хватает каскадного овператора `..` в `createWStore`.
 
 Также обязателен для переопределения метод `build`, на вход поступает контекст и стора.
 И дополнительно стора пробрасывается вниз по дереву - доступна в `context` у детей
-через `RStoreWidget.store<MyAppStore>(context)` или через `context.store<MyAppStore>()`.
+через `WStoreWidget.store<MyAppStore>(context)` или через `context.store<MyAppStore>()`.
 
 Просто немного удобства, чтобы сразу в сторе иметь доступ ко входящим параметрам виджета, к
 его калбекам, что это всё руками не пробрасывать.
@@ -199,14 +199,14 @@ class MyWidgetWithRStore extends RStoreWidget<MyAppStore> {
 
 ![](.github/rstore.drawio.png)
 
-## RStoreBuilder, RStoreValueBuilder и RStoreNamedBuilder
+## WStoreBuilder, WStoreValueBuilder и WStoreNamedBuilder
 
 Для того чтобы подписаться на изменения переменных в сторе нужно использовать
 список `watch` - список тех переменных за изменениями которых мы следим и при изменении
-которых нужно перестроить виджет. Задаем его в `RStoreBuilder`:
+которых нужно перестроить виджет. Задаем его в `WStoreBuilder`:
 
 ```dart
-RStoreBuilder<MyAppStore>(
+WStoreBuilder<MyAppStore>(
   store: store,
   watch: (store) => [store.counter],
   builder: (context, store) {
@@ -219,16 +219,16 @@ RStoreBuilder<MyAppStore>(
 ```
 
 Параметр `store` не обязателен, если его не указывать то билдер будет сам
-искать стору в текущем контексте, через `RStoreWidget.store<MyAppStore>(context)`.
+искать стору в текущем контексте, через `WStoreWidget.store<MyAppStore>(context)`.
 Далее в примерах его указывать не будем.
 
 Часто в виджетах нам требуется следить за изменением только одного значения в сторе
-(как в примере выше), для этого можно использовать шаблон `RStoreValueBuilder`,
+(как в примере выше), для этого можно использовать шаблон `WStoreValueBuilder`,
 тут `watch` возвращает уже не список, а только одно значние, и это значение
 также будет передаваться в `builder`:
 
 ```dart
-RStoreValueBuilder<MyAppStore, int>(
+WStoreValueBuilder<MyAppStore, int>(
   watch: (store) => store.counter,
   builder: (context, counter) {
     return Text(
@@ -241,11 +241,11 @@ RStoreValueBuilder<MyAppStore, int>(
 
 Можно сделать билдер который обновляется вручную по `name`
 (в `setStore` можно указать массив `names` - те билдеры которые нужно обновить по имени).
-Для этого используем шаблон `RStoreNamedBuilder`, в нём не будет списка `watch` вообще,
+Для этого используем шаблон `WStoreNamedBuilder`, в нём не будет списка `watch` вообще,
 а вместо него нужно просто указать `name`:
 
 ```dart
-RStoreNamedBuilder<MyAppStore>(
+WStoreNamedBuilder<MyAppStore>(
   name: 'counter',
   builder: (context, store) {
     return Text(
@@ -273,15 +273,15 @@ store.setStore(() => store.counter++, ['counter']);
 Имена билдеров задавайте константами в сторе. Лучше задать всё в одном
 месте и использовать от туда, чем копировать одинаковый "магический" текст по коду.
 
-## RStoreListener, RStoreValueListener, RStoreBoolListener, RStoreStringListener и RStoreNamedListener
+## WStoreListener, WStoreValueListener, WStoreBoolListener, WStoreStringListener и WStoreNamedListener
 
 Если нам требуется следить за изменением значения в сторе без ребилда, чтобы,
 например, перейти в другой экран при каком-то значении, то нужно использовать
-шаблон `RStoreListener`. В него передаем дочерний виджет `child` и
+шаблон `WStoreListener`. В него передаем дочерний виджет `child` и
 определяем `onChange` - что делать при изменении значений в списке `watch`:
 
 ```dart
-RStoreListener<MyAppStore>(
+WStoreListener<MyAppStore>(
   watch: (store) => [store.counter],
   onChange: (context, store) {
     if (store.counter > 9) {
@@ -295,11 +295,11 @@ RStoreListener<MyAppStore>(
 Обратите внимание что функция `onChange` не вызывается при инициализации.
 
 Мы можем следить изменением только одного значения с помощью
-шаблона `RStoreValueListener`, где `watch` возвращает уже не список,
+шаблона `WStoreValueListener`, где `watch` возвращает уже не список,
 а только одно значние, и это значение также будет передаваться в `onChange`:
 
 ```dart
-RStoreValueListener<MyAppStore, int>(
+WStoreValueListener<MyAppStore, int>(
   watch: (store) => store.counter,
   onChange: (context, counter) {
     if (counter > 9) {
@@ -311,25 +311,25 @@ RStoreValueListener<MyAppStore, int>(
 ```
 
 Когда нужно, что-то сделать при установке `bool` флага, можно использовать
-готовый шаблон `RStoreBoolListener`. В нем `watch` возвращает `bool` переменную
+готовый шаблон `WStoreBoolListener`. В нем `watch` возвращает `bool` переменную
 за которой следим и вместо передачи этого значение в `onChange` и последующей
 проверки, сразу определяем функцию `onTrue` (или `onFalse`):
 
 ```dart
-RStoreBoolListener<MyAppStore>(
+WStoreBoolListener<MyAppStore>(
   watch: (store) => store.showNextScreen,
   onTrue: (context) => Navigator.of(context).push(...),
   child: ...,
 ),
 ```
 
-Аналогичная упрощенная форма есть для строк `RStoreStringListener`. В нем `watch`
+Аналогичная упрощенная форма есть для строк `WStoreStringListener`. В нем `watch`
 возвращает `String` переменную, её значение передаётcя в функцию `onNotEmpty`.
 Также можно определить функцию `onEmpty` - она вызовется когда переменной
 будет присвоена пустая строка:
 
 ```dart
-RStoreStringListener<MyAppStore>(
+WStoreStringListener<MyAppStore>(
   watch: (store) => store.showScreen,
   onNotEmpty: (context, showScreen) => Navigator.of(context).pushNamed(showScreen),
   reset: (store) => store.showScreen = '',
@@ -345,11 +345,11 @@ RStoreStringListener<MyAppStore>(
 
 И можно сделать слушатель который обновляется вручную по `name`
 (в `setStore` можно указать массив `names` - те слушатели которые нужно обновить по имени).
-Для этого используем шаблон `RStoreNamedListener`, в нём не будет списка `watch` вообще,
+Для этого используем шаблон `WStoreNamedListener`, в нём не будет списка `watch` вообще,
 а вместо него нужно просто указать `name`:
 
 ```dart
-RStoreNamedListener<MyAppStore>(
+WStoreNamedListener<MyAppStore>(
   name: 'counter',
   onChange: (context, store) {
     if (store.counter > 9) {
@@ -366,17 +366,17 @@ store.setStore(() => store.counter++, ['counter']);
 ```
 
 Именованные слушатели не являются "чистой архитектурой", так как создает зависимости в обе стороны
-(предостережение аналогичное как в `RStoreNamedBuilder`). Используйте с умом и осторожностью.
+(предостережение аналогичное как в `WStoreNamedBuilder`). Используйте с умом и осторожностью.
 
-## RStoreConsumer
+## WStoreConsumer
 
-Когда нужен виджет, который объединяет в себе возможности и `RStoreBuilder` и `RStoreListener`
-используем виджет `RStoreConsumer`. Это универсальный солдат: он может и билдится, и следить
+Когда нужен виджет, который объединяет в себе возможности и `WStoreBuilder` и `WStoreListener`
+используем виджет `WStoreConsumer`. Это универсальный солдат: он может и билдится, и следить
 за изменениями, и даже иметь сразу и лист `watch` и `name`. А также в него можно передать
 виджет `child` который не должен ребилдится при изменении:
 
 ```dart
-RStoreConsumer(
+WStoreConsumer(
   store: store,
   watch: () => [store.counter],
   child: Text('Button has been pressed:'), // not be rebuilt
@@ -400,11 +400,11 @@ RStoreConsumer(
 искать её в контексте. А остальные параметры у него не обязательны, так что
 можно их комбинировать как угодно.
 
-Комбинируя параметры можно добиться такого же поведения как `RStoreBuilder` или
-`RStoreListener`. И на самом деле эти виджеты внутри возвращают `RStoreConsumer`
+Комбинируя параметры можно добиться такого же поведения как `WStoreBuilder` или
+`WStoreListener`. И на самом деле эти виджеты внутри возвращают `WStoreConsumer`
 и по факту являются оберткой над ним.
 
-## Дополнительные возможности RStore
+## Дополнительные возможности WStore
 
 ### computed, computedFromFuture, computedFromStream, computedConverter, computedConverter2
 
@@ -424,7 +424,7 @@ RStoreConsumer(
 пересчитать при обновлении `counter` и задаём уникальный ключ в кеше `"doubleCounter"`:
 
 ```dart
-class MyAppStore extends RStore {
+class MyAppStore extends WStore {
   int counter = 0;
 
   get doubleCounter => computed<int>(
@@ -645,26 +645,26 @@ subscribe2<int, String>(
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:rstore/rstore.dart';
+import 'package:rstore/wstore.dart';
 
-class $STORE_NAME$ extends RStore {
+class $STORE_NAME$ extends WStore {
   // TODO: add data here...
 
   @override
   $WIDGET_NAME$ get widget => super.widget as $WIDGET_NAME$;
 
   static $STORE_NAME$ of(BuildContext context) {
-    return RStoreWidget.store<$STORE_NAME$>(context);
+    return WStoreWidget.store<$STORE_NAME$>(context);
   }
 }
 
-class $NAME$ extends RStoreWidget<$STORE_NAME$> {
+class $NAME$ extends WStoreWidget<$STORE_NAME$> {
   const $WIDGET_NAME$({
     Key? key,
   }) : super(key: key);
 
   @override
-  $STORE_NAME$ createRStore() => $STORE_NAME$();
+  $STORE_NAME$ createWStore() => $STORE_NAME$();
 
   @override
   Widget build(BuildContext context, $STORE_NAME$ store) {
@@ -675,7 +675,7 @@ class $NAME$ extends RStoreWidget<$STORE_NAME$> {
 
 Где:
 
-- Абреввиатура `rsw` - New RStore widget
+- Абреввиатура `rsw` - New WStore widget
 - `Applicable context` - равно `Applicable in Dart: top-level.`
 - `NAME` - начальная точка
 - `WIDGET_NAME` - равно `NAME` + skip if defined
@@ -691,13 +691,13 @@ and then select the Dart language.
 
 ```json
 {
-  "New RStore widget": {
+  "New WStore widget": {
     "prefix": "rsw",
     "body": [
       "import 'package:flutter/material.dart';",
-      "import 'package:rstore/rstore.dart';",
+      "import 'package:rstore/wstore.dart';",
       "",
-      "class $1Store extends RStore {",
+      "class $1Store extends WStore {",
       "\t// TODO: add data here...",
       "",
       "\t@override",
@@ -705,16 +705,16 @@ and then select the Dart language.
       "}",
       "",
       "\tstatic $1Store of(BuildContext context) {",
-      "\t\treturn RStoreWidget.store<$1Store>(context);",
+      "\t\treturn WStoreWidget.store<$1Store>(context);",
       "\t}",
       "",
-      "class ${1:MyWidget} extends RStoreWidget<$1Store> {",
+      "class ${1:MyWidget} extends WStoreWidget<$1Store> {",
       "\tconst $1({",
       "\t\tKey? key,",
       "\t}) : super(key: key);",
       "",
       "\t@override",
-      "\t$1Store createRStore() => $1Store();",
+      "\t$1Store createWStore() => $1Store();",
       "",
       "\t@override",
       "\tWidget build(BuildContext context, $1Store store) {",
@@ -731,7 +731,7 @@ and then select the Dart language.
 
 **Один "сложный" widget = один стор!** Если потребовалось подключать много сторов -
 значит вам нужно вынести часть подвиджетов в отдельный "сложный" widget.
-"Сложный" виджет наследуем от RStoreWidget.
+"Сложный" виджет наследуем от WStoreWidget.
 
 **В сторе не делаем функции/методы на получение информации!** Информацию из хранилища получаем
 только напрямую из переменных или геттеров. Если нужно как-то обработать данные
@@ -755,10 +755,10 @@ and then select the Dart language.
 
 Под капотом это использует обычную механику Flatter`а:
 
-- RStore - создает стримы которые пушатся по setStore
-- RStoreConsumer - это StatefulWidget`ы которые подписываются на стримы из RStore
-- Если watch лист изменился то вызывается setState и происходит ребилд (сравнение элементов в watch происходит по ссылке - по этому в RStore надо перезаписывать объект, чтобы подхватилось изменения)
-- RStoreWidget оборачивает RStore в InheritedWidget и добавляет себя в RStore.widget
+- WStore - создает стримы которые пушатся по setStore
+- WStoreConsumer - это StatefulWidget`ы которые подписываются на стримы из WStore
+- Если watch лист изменился то вызывается setState и происходит ребилд (сравнение элементов в watch происходит по ссылке - по этому в WStore надо перезаписывать объект, чтобы подхватилось изменения)
+- WStoreWidget оборачивает WStore в InheritedWidget и добавляет себя в WStore.widget
 
 ## Как внести свой вклад
 

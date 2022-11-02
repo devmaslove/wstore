@@ -1,7 +1,7 @@
-/// The error that will be thrown if the RStore cannot be found in the
+/// The error that will be thrown if the WStore cannot be found in the
 /// Widget tree.
-class RStoreNotFoundError extends Error {
-  /// The variable of Rstore being retrieved
+class WStoreNotFoundError extends Error {
+  /// The variable of wstore being retrieved
   final String variable;
 
   /// The type of the value being retrieved
@@ -10,28 +10,28 @@ class RStoreNotFoundError extends Error {
   /// The type of the Widget requesting the value
   final Type widgetType;
 
-  RStoreNotFoundError(this.valueType, this.widgetType, this.variable);
+  WStoreNotFoundError(this.valueType, this.widgetType, this.variable);
 
   @override
   String toString() {
     if (variable.isNotEmpty) {
-      return '''Error: Could not find ${variable.toLowerCase()} for this RStore.
+      return '''Error: Could not find ${variable.toLowerCase()} for this WStore.
 
-$variable sets only in RStoreWidget.
-Make sure that RStore is under your RStoreWidget.
-To fix, please create RStore in RStoreWidget.
+$variable sets only in WStoreWidget.
+Make sure that WStore is under your WStoreWidget.
+To fix, please create WStore in WStoreWidget.
 
-Or RStoreWidget has been unmounted, so the RState no longer has a ${variable.toLowerCase()}
+Or WStoreWidget has been unmounted, so the RState no longer has a ${variable.toLowerCase()}
 (${variable.toLowerCase()} called after RState.dispose).
 ''';
     }
-    return '''Error: Could not find the correct RStoreWidget<$valueType> above this $widgetType Widget.
+    return '''Error: Could not find the correct WStoreWidget<$valueType> above this $widgetType Widget.
 
-Make sure that $widgetType is under your RStoreWidget<$valueType>.
+Make sure that $widgetType is under your WStoreWidget<$valueType>.
 
 To fix, please add to top of your widget tree:
-  class YourWidget extends RStoreWidget<$valueType>(
-   $valueType createRStore() => $valueType(),
+  class YourWidget extends WStoreWidget<$valueType>(
+   $valueType createWStore() => $valueType(),
    Widget build(context, store) => $widgetType(...
 ''';
   }

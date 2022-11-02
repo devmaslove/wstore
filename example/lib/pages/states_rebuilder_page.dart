@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:rstore/rstore.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:wstore/wstore.dart';
 
 class Item {
   int count = 0;
@@ -19,7 +19,7 @@ class Item {
   }
 }
 
-class StatesReBuilderPageStore extends RStore {
+class StatesReBuilderPageStore extends WStore {
   static const _timerIdLoadItems = 0;
   List<Item> items = [];
   int detailedIndex = -1;
@@ -45,11 +45,11 @@ class StatesReBuilderPageStore extends RStore {
   }
 }
 
-class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
+class StatesReBuilderPage extends WStoreWidget<StatesReBuilderPageStore> {
   const StatesReBuilderPage({Key? key}) : super(key: key);
 
   @override
-  void initRStore(StatesReBuilderPageStore store) => store.loadItems();
+  void initWStore(StatesReBuilderPageStore store) => store.loadItems();
 
   @override
   Widget build(BuildContext context, StatesReBuilderPageStore store) {
@@ -60,7 +60,7 @@ class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
           Container(
             padding: const EdgeInsets.only(top: 10),
             height: 150,
-            child: RStoreValueBuilder<StatesReBuilderPageStore, List<Item>>(
+            child: WStoreValueBuilder<StatesReBuilderPageStore, List<Item>>(
               store: store,
               watch: (store) => store.items,
               builder: (context, items) => items.isEmpty
@@ -76,7 +76,7 @@ class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: SizedBox(
                             width: 100,
-                            child: RStoreValueBuilder<StatesReBuilderPageStore,
+                            child: WStoreValueBuilder<StatesReBuilderPageStore,
                                 Item>(
                               store: store,
                               watch: (store) => store.items[index],
@@ -95,7 +95,7 @@ class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
           ),
           const Divider(),
           Center(
-            child: RStoreValueBuilder<StatesReBuilderPageStore, int>(
+            child: WStoreValueBuilder<StatesReBuilderPageStore, int>(
               store: store,
               watch: (store) => store.detailedIndex,
               builder: (context, index) => index < 0
@@ -119,7 +119,7 @@ class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
                   : SizedBox(
                       width: 200,
                       height: 200,
-                      child: RStoreValueBuilder<StatesReBuilderPageStore, Item>(
+                      child: WStoreValueBuilder<StatesReBuilderPageStore, Item>(
                         store: store,
                         watch: (store) => store.items[store.detailedIndex],
                         builder: (context, item) {
@@ -147,7 +147,7 @@ class StatesReBuilderPage extends RStoreWidget<StatesReBuilderPageStore> {
   }
 
   @override
-  StatesReBuilderPageStore createRStore() => StatesReBuilderPageStore();
+  StatesReBuilderPageStore createWStore() => StatesReBuilderPageStore();
 }
 
 class ItemCard extends StatelessWidget {

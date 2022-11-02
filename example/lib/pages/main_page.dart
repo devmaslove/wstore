@@ -10,7 +10,7 @@ class MainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('RStore examples')),
+      appBar: AppBar(title: const Text('WStore examples')),
       body: const MainPageContent(),
     );
   }

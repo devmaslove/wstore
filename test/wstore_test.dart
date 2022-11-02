@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rstore/rstore.dart';
+import 'package:wstore/wstore.dart';
 
-class RStoreTest extends RStore {
+class WStoreTest extends WStore {
   String hello = '';
 
   get sayHello => computed<String>(
@@ -12,8 +12,8 @@ class RStoreTest extends RStore {
 }
 
 void main() {
-  test('RStore compose works', () {
-    final store = RStoreTest();
+  test('WStore compose works', () {
+    final store = WStoreTest();
 
     String say1 = store.sayHello;
     expect(say1, equals(" World"));

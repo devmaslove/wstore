@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'RStore builder',
+      title: 'WStore builder',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: const MainPage(),
       debugShowCheckedModeBanner: false,

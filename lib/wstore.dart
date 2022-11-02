@@ -1,4 +1,4 @@
-library rstore;
+library wstore;
 
 export 'src/builder.dart';
 export 'src/context.dart';

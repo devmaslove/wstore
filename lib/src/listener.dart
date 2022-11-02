@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'store.dart';
 
-class RStoreListener<T extends RStore> extends StatelessWidget {
+class WStoreListener<T extends WStore> extends StatelessWidget {
   final List<dynamic> Function(T store) watch;
   final Widget child;
   final T? store;
   final void Function(BuildContext context, T store) onChange;
 
-  const RStoreListener({
+  const WStoreListener({
     Key? key,
     required this.watch,
     required this.onChange,
@@ -18,8 +18,8 @@ class RStoreListener<T extends RStore> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = this.store ?? RStoreWidget.store<T>(context);
-    return RStoreConsumer(
+    final store = this.store ?? WStoreWidget.store<T>(context);
+    return WStoreConsumer(
       watch: () => [watch(store)],
       onChange: (context) => onChange(context, store),
       store: store,
@@ -28,13 +28,13 @@ class RStoreListener<T extends RStore> extends StatelessWidget {
   }
 }
 
-class RStoreValueListener<T extends RStore, V> extends StatelessWidget {
+class WStoreValueListener<T extends WStore, V> extends StatelessWidget {
   final V Function(T store) watch;
   final Widget child;
   final T? store;
   final void Function(BuildContext context, V value) onChange;
 
-  const RStoreValueListener({
+  const WStoreValueListener({
     Key? key,
     required this.watch,
     required this.onChange,
@@ -44,8 +44,8 @@ class RStoreValueListener<T extends RStore, V> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = this.store ?? RStoreWidget.store<T>(context);
-    return RStoreConsumer(
+    final store = this.store ?? WStoreWidget.store<T>(context);
+    return WStoreConsumer(
       watch: () => [watch(store)],
       onChange: (context) => onChange(context, watch(store)),
       store: store,
@@ -54,15 +54,15 @@ class RStoreValueListener<T extends RStore, V> extends StatelessWidget {
   }
 }
 
-/// [RStoreNamedListener] allows you to create listener that can be changed
-/// manually by name (see [RStore.setStore] buildersNames)
-class RStoreNamedListener<T extends RStore> extends StatelessWidget {
+/// [WStoreNamedListener] allows you to create listener that can be changed
+/// manually by name (see [WStore.setStore] buildersNames)
+class WStoreNamedListener<T extends WStore> extends StatelessWidget {
   final String name;
   final Widget child;
   final T? store;
   final void Function(BuildContext context, T store) onChange;
 
-  const RStoreNamedListener({
+  const WStoreNamedListener({
     Key? key,
     required this.name,
     required this.onChange,
@@ -72,8 +72,8 @@ class RStoreNamedListener<T extends RStore> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = this.store ?? RStoreWidget.store<T>(context);
-    return RStoreConsumer(
+    final store = this.store ?? WStoreWidget.store<T>(context);
+    return WStoreConsumer(
       name: name,
       onChange: (context) => onChange(context, store),
       store: store,
@@ -82,7 +82,7 @@ class RStoreNamedListener<T extends RStore> extends StatelessWidget {
   }
 }
 
-class RStoreBoolListener<T extends RStore> extends StatelessWidget {
+class WStoreBoolListener<T extends WStore> extends StatelessWidget {
   final bool Function(T store) watch;
   final Widget child;
   final T? store;
@@ -90,7 +90,7 @@ class RStoreBoolListener<T extends RStore> extends StatelessWidget {
   final void Function(BuildContext context)? onFalse;
   final void Function(T store)? reset;
 
-  const RStoreBoolListener({
+  const WStoreBoolListener({
     Key? key,
     required this.watch,
     this.onTrue,
@@ -104,8 +104,8 @@ class RStoreBoolListener<T extends RStore> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = this.store ?? RStoreWidget.store<T>(context);
-    return RStoreConsumer(
+    final store = this.store ?? WStoreWidget.store<T>(context);
+    return WStoreConsumer(
       watch: () => [watch(store)],
       onChange: (context) {
         final bool value = watch(store);
@@ -124,7 +124,7 @@ class RStoreBoolListener<T extends RStore> extends StatelessWidget {
   }
 }
 
-class RStoreStringListener<T extends RStore> extends StatelessWidget {
+class WStoreStringListener<T extends WStore> extends StatelessWidget {
   final String Function(T store) watch;
   final Widget child;
   final T? store;
@@ -132,7 +132,7 @@ class RStoreStringListener<T extends RStore> extends StatelessWidget {
   final void Function(BuildContext context)? onEmpty;
   final void Function(T store)? reset;
 
-  const RStoreStringListener({
+  const WStoreStringListener({
     Key? key,
     required this.watch,
     this.onNotEmpty,
@@ -146,8 +146,8 @@ class RStoreStringListener<T extends RStore> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = this.store ?? RStoreWidget.store<T>(context);
-    return RStoreConsumer(
+    final store = this.store ?? WStoreWidget.store<T>(context);
+    return WStoreConsumer(
       watch: () => [watch(store)],
       onChange: (context) {
         final String value = watch(store);

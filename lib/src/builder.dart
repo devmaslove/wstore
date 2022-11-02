@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 import 'store.dart';
 
-class RStoreBuilder<T extends RStore> extends StatelessWidget {
+class WStoreBuilder<T extends WStore> extends StatelessWidget {
   final Widget Function(BuildContext context, T store) builder;
   final List<dynamic> Function(T store) watch;
   final T? store;
 
-  const RStoreBuilder({
+  const WStoreBuilder({
     Key? key,
     required this.builder,
     required this.watch,
@@ -16,8 +16,8 @@ class RStoreBuilder<T extends RStore> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = this.store ?? RStoreWidget.store<T>(context);
-    return RStoreConsumer(
+    final store = this.store ?? WStoreWidget.store<T>(context);
+    return WStoreConsumer(
       builder: (context, _) => builder(context, store),
       watch: () => watch(store),
       store: store,
@@ -25,12 +25,12 @@ class RStoreBuilder<T extends RStore> extends StatelessWidget {
   }
 }
 
-class RStoreValueBuilder<T extends RStore, V> extends StatelessWidget {
+class WStoreValueBuilder<T extends WStore, V> extends StatelessWidget {
   final Widget Function(BuildContext context, V value) builder;
   final V Function(T store) watch;
   final T? store;
 
-  const RStoreValueBuilder({
+  const WStoreValueBuilder({
     Key? key,
     this.store,
     required this.builder,
@@ -39,8 +39,8 @@ class RStoreValueBuilder<T extends RStore, V> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = this.store ?? RStoreWidget.store<T>(context);
-    return RStoreConsumer(
+    final store = this.store ?? WStoreWidget.store<T>(context);
+    return WStoreConsumer(
       builder: (context, _) => builder(context, watch(store)),
       watch: () => [watch(store)],
       store: store,
@@ -48,13 +48,13 @@ class RStoreValueBuilder<T extends RStore, V> extends StatelessWidget {
   }
 }
 
-/// [RStoreNamedBuilder] allows you to create widgets that can be updated
-/// manually by name (see [RStore.setStore] buildersNames)
-class RStoreNamedBuilder<T extends RStore> extends StatelessWidget {
+/// [WStoreNamedBuilder] allows you to create widgets that can be updated
+/// manually by name (see [WStore.setStore] buildersNames)
+class WStoreNamedBuilder<T extends WStore> extends StatelessWidget {
   final Widget Function(BuildContext context, T store) builder;
   final String name;
 
-  const RStoreNamedBuilder({
+  const WStoreNamedBuilder({
     Key? key,
     required this.builder,
     required this.name,
@@ -62,8 +62,8 @@ class RStoreNamedBuilder<T extends RStore> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = RStoreWidget.store<T>(context);
-    return RStoreConsumer(
+    final store = WStoreWidget.store<T>(context);
+    return WStoreConsumer(
       builder: (context, _) => builder(context, store),
       name: name,
       store: store,

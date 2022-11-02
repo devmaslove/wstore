@@ -1,7 +1,7 @@
-name: rstore
+name: wstore
 description: A state management library that helps add reactivity to widgets
 version: 1.0.0
-repository: https://github.com/devmaslove/rstore
+repository: https://github.com/devmaslove/wstore
 
 environment:
   sdk: ">=2.16.2 <3.0.0"

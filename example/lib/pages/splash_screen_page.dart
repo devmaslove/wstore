@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:rstore/rstore.dart';
+import 'package:wstore/wstore.dart';
 
-class SplashScreenPageStore extends RStore {
+class SplashScreenPageStore extends WStore {
   static const _timerIdNextScreen = 0;
   bool showNextScreen = false;
 
@@ -19,24 +19,24 @@ class SplashScreenPageStore extends RStore {
   SplashScreenPage get widget => super.widget as SplashScreenPage;
 
   static SplashScreenPageStore of(BuildContext context) {
-    return RStoreWidget.store<SplashScreenPageStore>(context);
+    return WStoreWidget.store<SplashScreenPageStore>(context);
   }
 }
 
-class SplashScreenPage extends RStoreWidget<SplashScreenPageStore> {
+class SplashScreenPage extends WStoreWidget<SplashScreenPageStore> {
   const SplashScreenPage({
     super.key,
   });
 
   @override
-  initRStore(store) => store.startTimerNextPage();
+  initWStore(store) => store.startTimerNextPage();
 
   @override
   Widget build(BuildContext context, SplashScreenPageStore store) {
     return Scaffold(
       appBar: AppBar(title: const Text('Splash screen')),
       body: Center(
-        child: RStoreBoolListener<SplashScreenPageStore>(
+        child: WStoreBoolListener<SplashScreenPageStore>(
           store: store,
           watch: (store) => store.showNextScreen,
           onTrue: (context) => Navigator.of(context).pushReplacement(
@@ -51,7 +51,7 @@ class SplashScreenPage extends RStoreWidget<SplashScreenPageStore> {
   }
 
   @override
-  SplashScreenPageStore createRStore() => SplashScreenPageStore();
+  SplashScreenPageStore createWStore() => SplashScreenPageStore();
 }
 
 class _NextPage extends StatelessWidget {

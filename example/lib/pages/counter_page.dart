@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:rstore/rstore.dart';
+import 'package:wstore/wstore.dart';
 
-class CounterPageStore extends RStore {
+class CounterPageStore extends WStore {
   int counter = 0;
 
   void incrementCounter() {
     setStore(() {
-      // This call to setStore tells the RStoreBuilders that something has
-      // changed in this RStore, which causes it to rerun the build method below
+      // This call to setStore tells the WStoreBuilders that something has
+      // changed in this WStore, which causes it to rerun the build method below
       // so that the display can reflect the updated values. If we changed
       // counter without calling setStore(), then the build method would not be
       // called again, and so nothing would appear to happen.
@@ -16,14 +16,14 @@ class CounterPageStore extends RStore {
   }
 }
 
-class CounterPage extends RStoreWidget<CounterPageStore> {
+class CounterPage extends WStoreWidget<CounterPageStore> {
   const CounterPage({super.key});
 
   @override
   Widget build(BuildContext context, CounterPageStore store) {
     return Scaffold(
       appBar: AppBar(
-        title: RStoreValueBuilder<CounterPageStore, int>(
+        title: WStoreValueBuilder<CounterPageStore, int>(
             store: store,
             watch: (store) => store.counter,
             builder: (context, counter) {
@@ -48,7 +48,7 @@ class CounterPage extends RStoreWidget<CounterPageStore> {
   }
 
   @override
-  CounterPageStore createRStore() => CounterPageStore();
+  CounterPageStore createWStore() => CounterPageStore();
 }
 
 class CountText extends StatelessWidget {
@@ -58,7 +58,7 @@ class CountText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RStoreValueBuilder<CounterPageStore, int>(
+    return WStoreValueBuilder<CounterPageStore, int>(
       watch: (store) => store.counter,
       builder: (context, counter) {
         return Text(
