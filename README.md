@@ -686,8 +686,10 @@ class $NAME$ extends WStoreWidget<$STORE_NAME$> {
 
 Добавьте сниппет для языка Dart: `.../snippets/dart.json`
 
-User Snippets under File > Preferences (Code > Preferences on macOS),
-and then select the Dart language.
+"User Snippets" в File > Preferences (Code > Preferences на macOS),
+или в локализованно версии
+"Пользовательские фрагменты кода" в Файл - Параметры (Code > Параметры на macOS)
+и выбирите dart.json (Dart).
 
 ```json
 {
