@@ -702,11 +702,11 @@ and then select the Dart language.
       "",
       "\t@override",
       "\t$1 get widget => super.widget as $1;",
-      "}",
       "",
       "\tstatic $1Store of(BuildContext context) {",
       "\t\treturn WStoreWidget.store<$1Store>(context);",
       "\t}",
+      "}",
       "",
       "class ${1:MyWidget} extends WStoreWidget<$1Store> {",
       "\tconst $1({",
@@ -721,7 +721,7 @@ and then select the Dart language.
       "\t\treturn Container($0);",
       "\t}",
       "}",
-      "",
+      ""
     ]
   }
 }
