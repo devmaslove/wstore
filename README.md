@@ -1,6 +1,6 @@
 # WStore
 
-WStore - это библиотека для state management во Flutter.
+WStore - идеальный state management для вашего Pet-проекта на Flutter.
 
 ## Ключевые особенности
 
