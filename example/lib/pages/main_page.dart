@@ -1,5 +1,6 @@
 import 'package:example/pages/counter_page.dart';
 import 'package:example/pages/debounce_page.dart';
+import 'package:example/pages/http_get_page.dart';
 import 'package:example/pages/splash_screen_page.dart';
 import 'package:example/pages/states_rebuilder_page.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +43,11 @@ class MainPageContent extends StatelessWidget {
         ButtonGoToPage(
           text: 'Debounce search',
           page: () => const DebouncePage(),
+        ),
+        const SizedBox(height: 20),
+        ButtonGoToPage(
+          text: 'Http get',
+          page: () => const HttpGetPage(),
         ),
         const SizedBox(height: 20),
       ],
