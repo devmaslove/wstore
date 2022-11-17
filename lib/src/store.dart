@@ -517,18 +517,34 @@ class WStore {
   }
 
   void _checkChangeComposed() {
+    final computedWatchList = {..._computedWatchList};
+    final computedValues = {..._computedValues};
+    final computedWatchFunc = {..._computedWatchFunc};
+    //
     final List<String> removedKeys = [];
-    _computedWatchList.forEach((key, value) {
+    computedWatchList.forEach((key, value) {
       List<dynamic> oldWatch = value;
-      List<dynamic> newWatch = _computedWatchFunc[key]?.call() ?? const [];
+      // if watchFunc call composed - it modify _computedWatchList
+      // that's why we make a copy
+      List<dynamic> newWatch = computedWatchFunc[key]?.call() ?? const [];
       if (_isWatchValuesUpdates(oldWatch, newWatch)) {
-        _computedValues.remove(key);
-        _computedWatchFunc.remove(key);
+        computedValues.remove(key);
+        computedWatchFunc.remove(key);
         removedKeys.add(key);
       }
     });
-    for (final key in removedKeys) {
-      _computedWatchList.remove(key);
+    if (removedKeys.isNotEmpty) {
+      for (final key in removedKeys) {
+        computedWatchList.remove(key);
+      }
+      _computedWatchList.clear();
+      _computedWatchList.addAll(computedWatchList);
+      _computedValues.clear();
+      _computedValues.addAll(computedValues);
+      _computedWatchFunc.clear();
+      _computedWatchFunc.addAll(computedWatchFunc);
+      // run again to check if nested composed has changed
+      _checkChangeComposed();
     }
   }
 
