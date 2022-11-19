@@ -232,8 +232,8 @@ class WStore {
     _convertedSubscriptions[keyName] = streamWatchA?.listen(
       (data) {
         dataA = data;
-        if (dataA != null && dataB != null) {
-          final V newValue = getValue(dataA!, dataB!);
+        if (dataA is A && dataB is B) {
+          final V newValue = getValue(dataA as A, dataB as B);
           if (!_isValuesEquals(newValue, oldValue)) {
             oldValue = newValue;
             setStore(() => _convertedValues[keyName] = newValue, setStoreNames);
@@ -246,8 +246,8 @@ class WStore {
     _convertedSubscriptions2[keyName] = streamWatchB?.listen(
       (data) {
         dataB = data;
-        if (dataA != null && dataB != null) {
-          final V newValue = getValue(dataA!, dataB!);
+        if (dataA is A && dataB is B) {
+          final V newValue = getValue(dataA as A, dataB as B);
           if (!_isValuesEquals(newValue, oldValue)) {
             oldValue = newValue;
             setStore(() => _convertedValues[keyName] = newValue, setStoreNames);
@@ -393,15 +393,15 @@ class WStore {
     _subscriptions[id] = streamA.listen(
       (data) {
         dataA = data;
-        if (dataA != null && dataB != null) {
+        if (dataA is A && dataB is B) {
           if (debounceDuration != null) {
             _debounceTimers.remove(id)?.cancel();
             _debounceTimers[id] = Timer(debounceDuration, () {
               _debounceTimers.remove(id)?.cancel();
-              onData(dataA!, dataB!);
+              onData(dataA as A, dataB as B);
             });
           } else {
-            onData(dataA!, dataB!);
+            onData(dataA as A, dataB as B);
           }
         }
       },
@@ -412,15 +412,15 @@ class WStore {
     _subscriptions2[id] = streamB.listen(
       (data) {
         dataB = data;
-        if (dataA != null && dataB != null) {
+        if (dataA is A && dataB is B) {
           if (debounceDuration != null) {
             _debounceTimers.remove(id)?.cancel();
             _debounceTimers[id] = Timer(debounceDuration, () {
               _debounceTimers.remove(id)?.cancel();
-              onData(dataA!, dataB!);
+              onData(dataA as A, dataB as B);
             });
           } else {
-            onData(dataA!, dataB!);
+            onData(dataA as A, dataB as B);
           }
         }
       },
