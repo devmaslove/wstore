@@ -17,10 +17,6 @@ class SplashScreenPageStore extends WStore {
 
   @override
   SplashScreenPage get widget => super.widget as SplashScreenPage;
-
-  static SplashScreenPageStore of(BuildContext context) {
-    return WStoreWidget.store<SplashScreenPageStore>(context);
-  }
 }
 
 class SplashScreenPage extends WStoreWidget<SplashScreenPageStore> {

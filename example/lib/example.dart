@@ -6,10 +6,6 @@ class MyWidgetStore extends WStore {
 
   @override
   MyWidget get widget => super.widget as MyWidget;
-
-  static MyWidgetStore of(BuildContext context) {
-    return WStoreWidget.store<MyWidgetStore>(context);
-  }
 }
 
 class MyWidget extends WStoreWidget<MyWidgetStore> {
@@ -23,7 +19,7 @@ class MyWidget extends WStoreWidget<MyWidgetStore> {
   @override
   Widget build(BuildContext context, MyWidgetStore store) {
     return Container(
-      // ТУТ ДЕРЕВО ВИДЖЕТОВ
-    );
+        // ТУТ ДЕРЕВО ВИДЖЕТОВ
+        );
   }
 }

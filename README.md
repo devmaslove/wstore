@@ -189,7 +189,7 @@ class MyWidgetWithWStore extends WStoreWidget<MyAppStore> {
 
 Также обязателен для переопределения метод `build`, на вход поступает контекст и стора.
 И дополнительно стора пробрасывается вниз по дереву - доступна в `context` у детей
-через `WStoreWidget.store<MyAppStore>(context)` или через `context.store<MyAppStore>()`.
+через `WStoreWidget.store<MyAppStore>(context)` или через `context.wstore<MyAppStore>()`.
 
 Просто немного удобства, чтобы сразу в сторе иметь доступ ко входящим параметрам виджета, к
 его калбекам, что это всё руками не пробрасывать.
@@ -682,10 +682,6 @@ class $STORE_NAME$ extends WStore {
 
   @override
   $WIDGET_NAME$ get widget => super.widget as $WIDGET_NAME$;
-
-  static $STORE_NAME$ of(BuildContext context) {
-    return WStoreWidget.store<$STORE_NAME$>(context);
-  }
 }
 
 class $NAME$ extends WStoreWidget<$STORE_NAME$> {
@@ -734,10 +730,6 @@ class $NAME$ extends WStoreWidget<$STORE_NAME$> {
       "",
       "\t@override",
       "\t$1 get widget => super.widget as $1;",
-      "",
-      "\tstatic $1Store of(BuildContext context) {",
-      "\t\treturn WStoreWidget.store<$1Store>(context);",
-      "\t}",
       "}",
       "",
       "class ${1:MyWidget} extends WStoreWidget<$1Store> {",

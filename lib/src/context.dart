@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'store.dart';
 
-/// Exposes the [store] method.
+/// Exposes the [wstore] method.
 extension WStoreContext on BuildContext {
   /// Obtains the nearest [WStoreWidget] up its widget tree
   /// and returns its store.
   ///
   /// Same as [WStoreWidget.store]
-  T store<T extends WStore>() {
+  T wstore<T extends WStore>() {
     return WStoreWidget.store<T>(this);
   }
 }
