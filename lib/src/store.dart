@@ -329,7 +329,8 @@ class WStore {
   /// Subscriptions are automatically canceled when WStore.dispose
   /// or when created a new one with same subscriptionId
   int subscribe<V>({
-    required final Stream<V> stream,
+    Stream<V>? stream,
+    Future<V>? future,
     final int? subscriptionId,
     void Function(V)? onData,
     void Function(Object, StackTrace)? onError,
@@ -337,13 +338,26 @@ class WStore {
     bool? cancelOnError,
     final Duration? debounceDuration,
   }) {
-    assert(subscriptionId == null || subscriptionId >= 0,
-        'subscriptionId must be positive integer');
+    assert(
+      subscriptionId == null || subscriptionId >= 0,
+      'subscriptionId must be positive integer',
+    );
     final int id = subscriptionId ?? _getNextID();
     // cancel old subscription
     cancelSubscription(subscriptionId: id);
+    //
+    assert(
+      !(stream != null && future != null),
+      'Only one must be defined at subscribe - stream or future',
+    );
+    Stream<V>? subscribeStream = stream ?? future?.asStream();
+    assert(
+      subscribeStream != null,
+      'Stream or future must be defined at subscribe',
+    );
+    if (subscribeStream == null) return id;
     // create new subscription
-    _subscriptions[id] = stream.listen(
+    _subscriptions[id] = subscribeStream.listen(
       onData != null
           ? (value) {
               if (debounceDuration != null) {
@@ -373,8 +387,10 @@ class WStore {
   /// Subscriptions are automatically canceled when WStore.dispose
   /// or when created a new one with same subscriptionId
   int subscribe2<A, B>({
-    required final Stream<A> streamA,
-    required final Stream<B> streamB,
+    Stream<A>? streamA,
+    Future<A>? futureA,
+    Stream<B>? streamB,
+    Future<B>? futureB,
     required void Function(A, B) onData,
     final int? subscriptionId,
     void Function(Object, StackTrace)? onError,
@@ -382,15 +398,30 @@ class WStore {
     bool? cancelOnError,
     final Duration? debounceDuration,
   }) {
-    assert(subscriptionId == null || subscriptionId >= 0,
-        'subscriptionId must be positive integer');
+    assert(
+      subscriptionId == null || subscriptionId >= 0,
+      'subscriptionId must be positive integer',
+    );
     final int id = subscriptionId ?? _getNextID();
     // cancel old subscription
     cancelSubscription(subscriptionId: id);
+    //
+    assert(
+      !(streamA != null && futureA != null) &&
+          !(streamB != null && futureB != null),
+      'Only one must be defined at subscribe2 - stream or future',
+    );
+    Stream<A>? subscribeStreamA = streamA ?? futureA?.asStream();
+    Stream<B>? subscribeStreamB = streamB ?? futureB?.asStream();
+    assert(
+      (subscribeStreamA != null && subscribeStreamB != null),
+      'StreamA or futureA and StreamB or futureB must be defined at subscribe2',
+    );
+    if (subscribeStreamA == null || subscribeStreamB == null) return id;
     // create new subscription
     A? dataA;
     B? dataB;
-    _subscriptions[id] = streamA.listen(
+    _subscriptions[id] = subscribeStreamA.listen(
       (data) {
         dataA = data;
         if (dataA is A && dataB is B) {
@@ -409,7 +440,7 @@ class WStore {
       onDone: onDone,
       cancelOnError: cancelOnError,
     );
-    _subscriptions2[id] = streamB.listen(
+    _subscriptions2[id] = subscribeStreamB.listen(
       (data) {
         dataB = data;
         if (dataA is A && dataB is B) {
