@@ -8,3 +8,7 @@
 * Fix: computedConverter2 and subscribe2 do not work correctly with nullable value
 * Important! Rename context.store to context.wstore
 * Add to subscribe/subscribe2 future param
+
+## 1.0.2
+
+* Fix: computed values do not work correctly with nullable value
