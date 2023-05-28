@@ -82,9 +82,10 @@ class WStore {
     required List<dynamic> Function() watch,
     required String keyName,
   }) {
-    V? value = _computedValues[keyName];
-    if (value is V) return value;
-    value = getValue();
+    if (_computedValues.containsKey(keyName)) {
+      return _computedValues[keyName];
+    }
+    V value = getValue();
     _computedValues[keyName] = value;
     _computedWatchList[keyName] = _cloneWatchList(watch());
     _computedWatchFunc[keyName] = watch;
@@ -172,8 +173,9 @@ class WStore {
     final List<String> setStoreNames = const [],
     void Function(Object, StackTrace)? onError,
   }) {
-    V? value = _convertedValues[keyName];
-    if (value is V) return value;
+    if (_convertedValues.containsKey(keyName)) {
+      return _convertedValues[keyName];
+    }
     V oldValue = initialValue;
     _convertedValues[keyName] = initialValue;
     assert(!(stream != null && future != null),
@@ -218,8 +220,9 @@ class WStore {
     final List<String> setStoreNames = const [],
     void Function(Object, StackTrace)? onError,
   }) {
-    V? value = _convertedValues[keyName];
-    if (value is V) return value;
+    if (_convertedValues.containsKey(keyName)) {
+      return _convertedValues[keyName];
+    }
     V oldValue = initialValue;
     _convertedValues[keyName] = initialValue;
     A? dataA;
