@@ -209,7 +209,7 @@ class WStore {
   ///
   /// computedConverted2 gets -1, 1, 2, 3
   @protected
-  V computedConverter2<A, B, V>({
+  V computedConverter2<A extends Object, B extends Object, V>({
     Stream<A>? streamA,
     Future<A>? futureA,
     Stream<B>? streamB,
@@ -389,7 +389,7 @@ class WStore {
   ///
   /// Subscriptions are automatically canceled when WStore.dispose
   /// or when created a new one with same subscriptionId
-  int subscribe2<A, B>({
+  int subscribe2<A extends Object, B extends Object>({
     Stream<A>? streamA,
     Future<A>? futureA,
     Stream<B>? streamB,
