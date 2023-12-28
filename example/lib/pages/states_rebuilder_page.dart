@@ -46,7 +46,7 @@ class StatesReBuilderPageStore extends WStore {
 }
 
 class StatesReBuilderPage extends WStoreWidget<StatesReBuilderPageStore> {
-  const StatesReBuilderPage({Key? key}) : super(key: key);
+  const StatesReBuilderPage({super.key});
 
   @override
   void initWStore(StatesReBuilderPageStore store) => store.loadItems();
@@ -155,10 +155,10 @@ class ItemCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const ItemCard({
-    Key? key,
+    super.key,
     required this.item,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

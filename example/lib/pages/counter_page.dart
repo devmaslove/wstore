@@ -30,10 +30,10 @@ class CounterPage extends WStoreWidget<CounterPageStore> {
               return Text('Counter: $counter');
             }),
       ),
-      body: Center(
+      body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text('You have pushed the button this many times:'),
             CountText(),
           ],
@@ -53,8 +53,8 @@ class CounterPage extends WStoreWidget<CounterPageStore> {
 
 class CountText extends StatelessWidget {
   const CountText({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +63,7 @@ class CountText extends StatelessWidget {
       builder: (context, counter) {
         return Text(
           '$counter',
-          style: Theme.of(context).textTheme.headline4,
+          style: Theme.of(context).textTheme.headlineMedium,
         );
       },
     );

@@ -5,46 +5,21 @@ import 'package:flutter/material.dart';
 import 'error.dart';
 import 'inherited.dart';
 
-class WStore {
+class GStore {
   late final StreamController<bool> _controllerWatchers;
   late final Stream<bool> _streamWatchers;
-  late final StreamController<List<String>> _controllerNames;
-  late final Stream<List<String>> _streamNames;
-  final Map<String, dynamic> _convertedValues = {};
-  final Map<String, StreamSubscription?> _convertedSubscriptions = {};
-  final Map<String, StreamSubscription?> _convertedSubscriptions2 = {};
   final Map<String, dynamic> _computedValues = {};
   final Map<String, dynamic> _computedWatchList = {};
   final Map<String, dynamic> _computedWatchFunc = {};
-  final Map<int, Timer> _timers = {};
-  final Map<int, Timer> _debounceTimers = {};
-  final Map<int, StreamSubscription> _subscriptions = {};
-  final Map<int, StreamSubscription> _subscriptions2 = {};
-  WStoreWidget? _widget;
-  int _prevId = 0;
 
-  /// Get [WStoreWidget] associated with this store.
-  @protected
-  WStoreWidget get widget {
-    if (_widget == null) {
-      throw WStoreNotFoundError(WStore, WStoreWidget, "Widget");
-    }
-    return _widget!;
-  }
-
-  /// Creates a reactive store.
-  WStore() {
+  /// Creates a reactive global store.
+  GStore() {
     _controllerWatchers = StreamController.broadcast();
     _streamWatchers = _controllerWatchers.stream;
-    _controllerNames = StreamController<List<String>>.broadcast();
-    _streamNames = _controllerNames.stream;
   }
 
   /// Notifying that the store has been updated.
-  void setStore(
-    VoidCallback fn, [
-    final List<String> names = const [],
-  ]) {
+  void setStore(void Function() fn) {
     final Object? result = fn() as dynamic;
     assert(
       () {
@@ -57,15 +32,13 @@ class WStore {
       '(without updating the store), and then synchronously '
       'update the store inside a call to setStore().',
     );
-    // Notifying builders with watchers that the store has been updated
-    _checkChangeComposed();
+    // Notifying watchers that the store has been updated
+    _checkChangeComputed();
     _controllerWatchers.add(true);
-    // Notifying builders with names that the store has been updated and need
-    // rebuild
-    if (names.isNotEmpty) _controllerNames.add([...names]);
   }
 
-  /// Cache values for add to Builders watch lists:
+  /// Cache values to minimize computation and updates for watch lists.
+  /// Data is recalculated only when dependent data is updated.
   ///
   /// ```dart
   /// int storeValue = 1;
@@ -90,6 +63,103 @@ class WStore {
     _computedWatchList[keyName] = _cloneWatchList(watch());
     _computedWatchFunc[keyName] = watch;
     return value;
+  }
+
+  void _checkChangeComputed() {
+    final computedWatchList = {..._computedWatchList};
+    final computedValues = {..._computedValues};
+    final computedWatchFunc = {..._computedWatchFunc};
+    //
+    final List<String> removedKeys = [];
+    computedWatchList.forEach((key, value) {
+      List<dynamic> oldWatch = value;
+      // if watchFunc call composed - it modify _computedWatchList
+      // that's why we make a copy
+      List<dynamic> newWatch = computedWatchFunc[key]?.call() ?? const [];
+      if (_isWatchValuesUpdates(oldWatch, newWatch)) {
+        computedValues.remove(key);
+        computedWatchFunc.remove(key);
+        removedKeys.add(key);
+      }
+    });
+    if (removedKeys.isNotEmpty) {
+      for (final key in removedKeys) {
+        computedWatchList.remove(key);
+      }
+      clear();
+      _computedWatchList.addAll(computedWatchList);
+      _computedValues.addAll(computedValues);
+      _computedWatchFunc.addAll(computedWatchFunc);
+      // run again to check if nested composed has changed
+      _checkChangeComputed();
+    }
+  }
+
+  /// Clear cached values and store data.
+  @mustCallSuper
+  void clear() {
+    _computedValues.clear();
+    _computedWatchList.clear();
+    _computedWatchFunc.clear();
+  }
+
+  static bool _isWatchValuesUpdates(
+    final List<dynamic> oldWatch,
+    final List<dynamic> newWatch,
+  ) {
+    if (oldWatch.length == newWatch.length) {
+      for (var i = 0; i < oldWatch.length; i++) {
+        if (!_isValuesEquals(oldWatch[i], newWatch[i])) return true;
+      }
+    }
+    return false;
+  }
+
+  static List<dynamic> _cloneWatchList(final List<dynamic> watchList) {
+    // TODO: need deep copy - lists, maps, sets
+    // List newList = json.decode(json.encode(oldList));
+    return [...watchList];
+  }
+
+  static bool _isValuesEquals(dynamic oldValue, dynamic newValue) {
+    // TODO: need deep compare - lists, maps, sets (listEquals)
+    // or maybe add param deep equals?
+    return oldValue == newValue;
+  }
+}
+
+class WStore extends GStore {
+  late final StreamController<List<String>> _controllerNames;
+  late final Stream<List<String>> _streamNames;
+  final Map<String, dynamic> _convertedValues = {};
+  final Map<String, StreamSubscription?> _convertedSubscriptions = {};
+  final Map<String, StreamSubscription?> _convertedSubscriptions2 = {};
+  final Map<int, Timer> _timers = {};
+  final Map<int, Timer> _debounceTimers = {};
+  final Map<int, StreamSubscription> _subscriptions = {};
+  final Map<int, StreamSubscription> _subscriptions2 = {};
+  WStoreWidget? _widget;
+  int _prevId = 0;
+
+  /// Get [WStoreWidget] associated with this store.
+  @protected
+  WStoreWidget get widget {
+    if (_widget == null) {
+      throw WStoreNotFoundError(WStore, WStoreWidget, 'Widget');
+    }
+    return _widget!;
+  }
+
+  /// Creates a reactive widget store.
+  WStore() {
+    _controllerNames = StreamController<List<String>>.broadcast();
+    _streamNames = _controllerNames.stream;
+  }
+
+  /// Notifying builders with names that the store has been updated and need
+  /// rebuild.
+  void notifyChangeNamed(final List<String> names) {
+    if (names.isNotEmpty) _controllerNames.add([...names]);
   }
 
   /// Get value from stream and cache it for add to Builders watch lists:
@@ -150,6 +220,33 @@ class WStore {
     );
   }
 
+  /// Get value from GStore and cache it for add to Builders watch lists:
+  ///
+  /// ```dart
+  /// String get computedGStoreValue => computedFromGStore(
+  ///   store: storeOfValue,
+  ///   getValue: (store) => store.value,
+  ///   keyName: 'computedGStoreValue',
+  /// );
+  /// ```
+  @protected
+  V computedFromStore<T extends GStore, V>({
+    required T store,
+    required V Function(T store) getValue,
+    required String keyName,
+    final List<String> setStoreNames = const [],
+    void Function(Object, StackTrace)? onError,
+  }) {
+    return computedConverter(
+      stream: store._streamWatchers,
+      getValue: (_) => getValue(store),
+      initialValue: getValue(store),
+      onError: onError,
+      setStoreNames: setStoreNames,
+      keyName: keyName,
+    );
+  }
+
   /// Convert data from stream and cache result value
   /// for add to Builders watch lists:
   ///
@@ -178,15 +275,18 @@ class WStore {
     }
     V oldValue = initialValue;
     _convertedValues[keyName] = initialValue;
-    assert(!(stream != null && future != null),
-        'Only one must be defined at computedConverter - stream or future');
+    assert(
+      !(stream != null && future != null),
+      'Only one must be defined at computedConverter - stream or future',
+    );
     Stream<T>? streamWatch = stream ?? future?.asStream();
     _convertedSubscriptions[keyName] = streamWatch?.listen(
       (data) {
         final V newValue = getValue(data);
-        if (!_isValuesEquals(newValue, oldValue)) {
+        if (!GStore._isValuesEquals(newValue, oldValue)) {
           oldValue = newValue;
-          setStore(() => _convertedValues[keyName] = newValue, setStoreNames);
+          setStore(() => _convertedValues[keyName] = newValue);
+          notifyChangeNamed(setStoreNames);
         }
       },
       onError: onError,
@@ -228,18 +328,20 @@ class WStore {
     A? dataA;
     B? dataB;
     assert(
-        !(streamA != null && futureA != null) &&
-            !(streamB != null && futureB != null),
-        'Only one must be defined at computedConverter2 - stream or future');
+      !(streamA != null && futureA != null) &&
+          !(streamB != null && futureB != null),
+      'Only one must be defined at computedConverter2 - stream or future',
+    );
     Stream<A>? streamWatchA = streamA ?? futureA?.asStream();
     _convertedSubscriptions[keyName] = streamWatchA?.listen(
       (data) {
         dataA = data;
         if (dataA is A && dataB is B) {
           final V newValue = getValue(dataA as A, dataB as B);
-          if (!_isValuesEquals(newValue, oldValue)) {
+          if (!GStore._isValuesEquals(newValue, oldValue)) {
             oldValue = newValue;
-            setStore(() => _convertedValues[keyName] = newValue, setStoreNames);
+            setStore(() => _convertedValues[keyName] = newValue);
+            notifyChangeNamed(setStoreNames);
           }
         }
       },
@@ -251,9 +353,10 @@ class WStore {
         dataB = data;
         if (dataA is A && dataB is B) {
           final V newValue = getValue(dataA as A, dataB as B);
-          if (!_isValuesEquals(newValue, oldValue)) {
+          if (!GStore._isValuesEquals(newValue, oldValue)) {
             oldValue = newValue;
-            setStore(() => _convertedValues[keyName] = newValue, setStoreNames);
+            setStore(() => _convertedValues[keyName] = newValue);
+            notifyChangeNamed(setStoreNames);
           }
         }
       },
@@ -550,65 +653,9 @@ class WStore {
     _convertedSubscriptions2.clear();
   }
 
-  void _checkChangeComposed() {
-    final computedWatchList = {..._computedWatchList};
-    final computedValues = {..._computedValues};
-    final computedWatchFunc = {..._computedWatchFunc};
-    //
-    final List<String> removedKeys = [];
-    computedWatchList.forEach((key, value) {
-      List<dynamic> oldWatch = value;
-      // if watchFunc call composed - it modify _computedWatchList
-      // that's why we make a copy
-      List<dynamic> newWatch = computedWatchFunc[key]?.call() ?? const [];
-      if (_isWatchValuesUpdates(oldWatch, newWatch)) {
-        computedValues.remove(key);
-        computedWatchFunc.remove(key);
-        removedKeys.add(key);
-      }
-    });
-    if (removedKeys.isNotEmpty) {
-      for (final key in removedKeys) {
-        computedWatchList.remove(key);
-      }
-      _computedWatchList.clear();
-      _computedWatchList.addAll(computedWatchList);
-      _computedValues.clear();
-      _computedValues.addAll(computedValues);
-      _computedWatchFunc.clear();
-      _computedWatchFunc.addAll(computedWatchFunc);
-      // run again to check if nested composed has changed
-      _checkChangeComposed();
-    }
-  }
-
   int _getNextID() {
     _prevId--;
     return _prevId;
-  }
-
-  static bool _isWatchValuesUpdates(
-    final List<dynamic> oldWatch,
-    final List<dynamic> newWatch,
-  ) {
-    if (oldWatch.length == newWatch.length) {
-      for (var i = 0; i < oldWatch.length; i++) {
-        if (!_isValuesEquals(oldWatch[i], newWatch[i])) return true;
-      }
-    }
-    return false;
-  }
-
-  static List<dynamic> _cloneWatchList(final List<dynamic> watchList) {
-    // TODO: need deep copy - lists, maps, sets
-    // List newList = json.decode(json.encode(oldList));
-    return [...watchList];
-  }
-
-  static bool _isValuesEquals(dynamic oldValue, dynamic newValue) {
-    // TODO: need deep compare - lists, maps, sets (listEquals)
-    // or maybe add param deep equals?
-    return oldValue == newValue;
   }
 }
 
@@ -723,13 +770,13 @@ class _WStoreConsumerState extends State<WStoreConsumer> {
     }
 
     if (widget.watch != null) {
-      _lastWatch = WStore._cloneWatchList(widget.watch!());
+      _lastWatch = GStore._cloneWatchList(widget.watch!());
       _setStoreSubscription = widget.store._streamWatchers.listen((_) {
         if (_lastWatch.isNotEmpty && mounted) {
           List<dynamic> nowWatch = widget.watch!();
-          if (WStore._isWatchValuesUpdates(_lastWatch, nowWatch)) {
+          if (GStore._isWatchValuesUpdates(_lastWatch, nowWatch)) {
             widget.onChange?.call(context);
-            _lastWatch = WStore._cloneWatchList(nowWatch);
+            _lastWatch = GStore._cloneWatchList(nowWatch);
             // check mounted because onChange can unmount
             if (mounted && widget.builder != null) setState(() {});
           }

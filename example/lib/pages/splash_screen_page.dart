@@ -37,7 +37,7 @@ class SplashScreenPage extends WStoreWidget<SplashScreenPageStore> {
           watch: (store) => store.showNextScreen,
           onTrue: (context) => Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (BuildContext context) => const _NextPage(),
+              builder: (BuildContext context) => const NextPage(),
             ),
           ),
           child: const CircularProgressIndicator(),
@@ -50,8 +50,8 @@ class SplashScreenPage extends WStoreWidget<SplashScreenPageStore> {
   SplashScreenPageStore createWStore() => SplashScreenPageStore();
 }
 
-class _NextPage extends StatelessWidget {
-  const _NextPage({Key? key}) : super(key: key);
+class NextPage extends StatelessWidget {
+  const NextPage({super.key});
 
   @override
   Widget build(BuildContext context) {

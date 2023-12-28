@@ -1,3 +1,4 @@
+import 'package:example/pages/client_page.dart';
 import 'package:example/pages/counter_page.dart';
 import 'package:example/pages/debounce_page.dart';
 import 'package:example/pages/http_get_page.dart';
@@ -6,7 +7,7 @@ import 'package:example/pages/states_rebuilder_page.dart';
 import 'package:flutter/material.dart';
 
 class MainPage extends StatelessWidget {
-  const MainPage({Key? key}) : super(key: key);
+  const MainPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +19,7 @@ class MainPage extends StatelessWidget {
 }
 
 class MainPageContent extends StatelessWidget {
-  const MainPageContent({Key? key}) : super(key: key);
+  const MainPageContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +51,11 @@ class MainPageContent extends StatelessWidget {
           page: () => const HttpGetPage(),
         ),
         const SizedBox(height: 20),
+        ButtonGoToPage(
+          text: 'Clients from repository',
+          page: () => const ClientPage(),
+        ),
+        const SizedBox(height: 20),
       ],
     );
   }
@@ -60,10 +66,10 @@ class ButtonGoToPage extends StatelessWidget {
   final Widget Function() page;
 
   const ButtonGoToPage({
-    Key? key,
+    super.key,
     required this.text,
     required this.page,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -12,3 +12,8 @@
 ## 1.0.2
 
 * Fix: computed values do not work correctly with nullable value
+
+## 1.0.3
+
+* Important! Remove from setStore names param, need call notifyChangeNamed after setStore if need
+* Added GStore class for organizing global storage

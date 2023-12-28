@@ -12,16 +12,16 @@ dependencies:
   wstore:
     path: ../
 
-  cupertino_icons: ^1.0.5
-  url_launcher: ^6.1.11
-  dio: ^5.1.2
+  cupertino_icons: ^1.0.6
+  url_launcher: ^6.2.2
+  dio: ^5.4.0
   rxdart: ^0.27.7
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^2.0.1
+  flutter_lints: ^3.0.1
 
 flutter:
   uses-material-design: true

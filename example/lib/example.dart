@@ -10,8 +10,8 @@ class MyWidgetStore extends WStore {
 
 class MyWidget extends WStoreWidget<MyWidgetStore> {
   const MyWidget({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   MyWidgetStore createWStore() => MyWidgetStore();
