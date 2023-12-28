@@ -16,4 +16,5 @@
 ## 1.0.3
 
 * Important! Remove from setStore names param, need call notifyChangeNamed after setStore if need
-* Added GStore class for organizing global storage
+* Added GStore class and WStore.computedFromStore for organizing global storage
+* Added WStoreStatus and WStoreStatusBuilder

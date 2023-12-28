@@ -55,7 +55,7 @@ class WStoreValueListener<T extends WStore, V> extends StatelessWidget {
 }
 
 /// [WStoreNamedListener] allows you to create listener that can be changed
-/// manually by name (see [WStore.setStore] buildersNames)
+/// manually by name (see [WStore.notifyChangeNamed])
 class WStoreNamedListener<T extends WStore> extends StatelessWidget {
   final String name;
   final Widget child;

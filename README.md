@@ -369,6 +369,50 @@ store.notifyChangeNamed(['counter'])
 Именованные слушатели не являются "чистой архитектурой", так как создает зависимости в обе стороны
 (предостережение аналогичное как в `WStoreNamedBuilder`). Используйте с умом и осторожностью.
 
+## WStoreStatus и WStoreStatusBuilder
+
+Часто требуется хранить в сторе переменную показывающую текущее состояние.
+Самый простой вариант тут `bool isLoading`. Однако если требуется несколько состояний,
+то для этих целей можно использовать тип `WStoreStatus`, он может принимать значения:
+
+```dart
+WStoreStatus.init // исходное состояние
+WStoreStatus.loading // загружается
+WStoreStatus.loaded // загрузилось
+WStoreStatus.error // произошла ошибка
+```
+
+Для того чтобы на основании этого статуса строить виджеты или проводить еще какие либо действия
+(например, вывод ошибки) сделан отдельный билдер `WStoreStatusBuilder`:
+
+```dart
+WStoreStatusBuilder<MyAppStore>(
+  watch: (store) => store.status,
+  builder: (context, status) {
+    final loaded = status == WStoreStatus.loaded;
+    if (loaded) return const Text('Ready');
+    return const Text('Start');
+  },
+  builderLoading: (context) {
+    return const CircularProgressIndicator();
+  },
+  onStatusError: (context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(store.errorMsg),
+      ),
+    );
+  },
+),
+```
+
+В данном примере мы следим в сторе за переменой `status`. Если она в значении
+`WStoreStatus.loading`, то срабатывает `builderLoading` и мы показываем прогресс.
+Можно по аналогии сделать билдеры других состояний или можно использовать общий `builder` и
+обрабатывать статус там (в примере мы вручную там следим за `WStoreStatus.loaded`). При получении
+значения `WStoreStatus.error` выводим ошибку в `SnackBar` (аналог `onChange` в `WStoreListener`,
+тут указан только `onStatusError`, но можно отловить любое состояние при необходимости).
+
 ## WStoreConsumer
 
 Когда нужен виджет, который объединяет в себе возможности и `WStoreBuilder` и `WStoreListener`
