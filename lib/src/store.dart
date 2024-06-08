@@ -5,11 +5,21 @@ import 'package:flutter/material.dart';
 import 'error.dart';
 import 'inherited.dart';
 
+mixin GStoreChangeObjectMixin {
+  int _objectChangeCount = 0;
+  void incrementObjectChangeCount() {
+    _objectChangeCount = _objectChangeCount + 1;
+  }
+
+  int get objectChangeCount => _objectChangeCount;
+}
+
 class GStore {
   late final StreamController<bool> _controllerWatchers;
   late final Stream<bool> _streamWatchers;
   final Map<String, dynamic> _computedValues = {};
   final Map<String, dynamic> _computedWatchList = {};
+  final Map<String, dynamic> _computedWatchListChanges = {};
   final Map<String, dynamic> _computedWatchFunc = {};
 
   /// Creates a reactive global store.
@@ -60,25 +70,37 @@ class GStore {
     }
     V value = getValue();
     _computedValues[keyName] = value;
-    _computedWatchList[keyName] = _cloneWatchList(watch());
+    final watchParams = watch();
+    _computedWatchList[keyName] = _cloneWatchList(watchParams);
+    _computedWatchListChanges[keyName] = _cloneWatchListChanges(watchParams);
     _computedWatchFunc[keyName] = watch;
     return value;
   }
 
   void _checkChangeComputed() {
     final computedWatchList = {..._computedWatchList};
+    final computedWatchListChanges = {..._computedWatchListChanges};
     final computedValues = {..._computedValues};
     final computedWatchFunc = {..._computedWatchFunc};
     //
     final List<String> removedKeys = [];
     computedWatchList.forEach((key, value) {
-      List<dynamic> oldWatch = value;
+      final List<dynamic> oldWatch = value;
+      final List<int?> oldWatchChanges =
+          computedWatchListChanges[key] ?? const [];
       // if watchFunc call composed - it modify _computedWatchList
       // that's why we make a copy
-      List<dynamic> newWatch = computedWatchFunc[key]?.call() ?? const [];
-      if (_isWatchValuesUpdates(oldWatch, newWatch)) {
+      final List<dynamic> newWatch = computedWatchFunc[key]?.call() ?? const [];
+      final List<int?> newWatchChanges = _cloneWatchListChanges(newWatch);
+      if (_isWatchValuesUpdates(
+        oldWatch,
+        oldWatchChanges,
+        newWatch,
+        newWatchChanges,
+      )) {
         computedValues.remove(key);
         computedWatchFunc.remove(key);
+        computedWatchListChanges.remove(key);
         removedKeys.add(key);
       }
     });
@@ -88,6 +110,7 @@ class GStore {
       }
       clear();
       _computedWatchList.addAll(computedWatchList);
+      _computedWatchListChanges.addAll(computedWatchListChanges);
       _computedValues.addAll(computedValues);
       _computedWatchFunc.addAll(computedWatchFunc);
       // run again to check if nested composed has changed
@@ -100,16 +123,20 @@ class GStore {
   void clear() {
     _computedValues.clear();
     _computedWatchList.clear();
+    _computedWatchListChanges.clear();
     _computedWatchFunc.clear();
   }
 
   static bool _isWatchValuesUpdates(
     final List<dynamic> oldWatch,
+    final List<int?> oldWatchChanges,
     final List<dynamic> newWatch,
+    final List<int?> newWatchChanges,
   ) {
     if (oldWatch.length == newWatch.length) {
       for (var i = 0; i < oldWatch.length; i++) {
         if (!_isValuesEquals(oldWatch[i], newWatch[i])) return true;
+        if (oldWatchChanges[i] != newWatchChanges[i]) return true;
       }
     }
     return false;
@@ -119,6 +146,13 @@ class GStore {
     // TODO: need deep copy - lists, maps, sets
     // List newList = json.decode(json.encode(oldList));
     return [...watchList];
+  }
+
+  static List<int?> _cloneWatchListChanges(final List<dynamic> watchList) {
+    return watchList
+        .map((watch) =>
+            watch is GStoreChangeObjectMixin ? watch.objectChangeCount : null)
+        .toList();
   }
 
   static bool _isValuesEquals(dynamic oldValue, dynamic newValue) {
@@ -274,6 +308,9 @@ class WStore extends GStore {
       return _convertedValues[keyName];
     }
     V oldValue = initialValue;
+    int? oldChangeCount = initialValue is GStoreChangeObjectMixin
+        ? initialValue.objectChangeCount
+        : null;
     _convertedValues[keyName] = initialValue;
     assert(
       !(stream != null && future != null),
@@ -283,8 +320,13 @@ class WStore extends GStore {
     _convertedSubscriptions[keyName] = streamWatch?.listen(
       (data) {
         final V newValue = getValue(data);
-        if (!GStore._isValuesEquals(newValue, oldValue)) {
+        final int? newChangeCount = newValue is GStoreChangeObjectMixin
+            ? newValue.objectChangeCount
+            : null;
+        if (!GStore._isValuesEquals(newValue, oldValue) ||
+            oldChangeCount != newChangeCount) {
           oldValue = newValue;
+          oldChangeCount = newChangeCount;
           setStore(() => _convertedValues[keyName] = newValue);
           notifyChangeNamed(setStoreNames);
         }
@@ -324,6 +366,9 @@ class WStore extends GStore {
       return _convertedValues[keyName];
     }
     V oldValue = initialValue;
+    int? oldChangeCount = initialValue is GStoreChangeObjectMixin
+        ? initialValue.objectChangeCount
+        : null;
     _convertedValues[keyName] = initialValue;
     A? dataA;
     B? dataB;
@@ -338,8 +383,13 @@ class WStore extends GStore {
         dataA = data;
         if (dataA is A && dataB is B) {
           final V newValue = getValue(dataA as A, dataB as B);
-          if (!GStore._isValuesEquals(newValue, oldValue)) {
+          final int? newChangeCount = newValue is GStoreChangeObjectMixin
+              ? newValue.objectChangeCount
+              : null;
+          if (!GStore._isValuesEquals(newValue, oldValue) ||
+              oldChangeCount != newChangeCount) {
             oldValue = newValue;
+            oldChangeCount = newChangeCount;
             setStore(() => _convertedValues[keyName] = newValue);
             notifyChangeNamed(setStoreNames);
           }
@@ -353,8 +403,13 @@ class WStore extends GStore {
         dataB = data;
         if (dataA is A && dataB is B) {
           final V newValue = getValue(dataA as A, dataB as B);
-          if (!GStore._isValuesEquals(newValue, oldValue)) {
+          final int? newChangeCount = newValue is GStoreChangeObjectMixin
+              ? newValue.objectChangeCount
+              : null;
+          if (!GStore._isValuesEquals(newValue, oldValue) ||
+              oldChangeCount != newChangeCount) {
             oldValue = newValue;
+            oldChangeCount = newChangeCount;
             setStore(() => _convertedValues[keyName] = newValue);
             notifyChangeNamed(setStoreNames);
           }
@@ -752,6 +807,7 @@ class _WStoreConsumerState extends State<WStoreConsumer> {
   StreamSubscription<List<String>>? _changeStoreSubscription;
   StreamSubscription<bool>? _setStoreSubscription;
   List<dynamic> _lastWatch = [];
+  List<int?> _lastWatchChanges = [];
 
   @override
   void initState() {
@@ -771,12 +827,22 @@ class _WStoreConsumerState extends State<WStoreConsumer> {
 
     if (widget.watch != null) {
       _lastWatch = GStore._cloneWatchList(widget.watch!());
+      _lastWatchChanges = GStore._cloneWatchListChanges(_lastWatch);
       _setStoreSubscription = widget.store._streamWatchers.listen((_) {
         if (_lastWatch.isNotEmpty && mounted) {
-          List<dynamic> nowWatch = widget.watch!();
-          if (GStore._isWatchValuesUpdates(_lastWatch, nowWatch)) {
+          final List<dynamic> nowWatch =
+              GStore._cloneWatchList(widget.watch!());
+          final List<int?> nowWatchChanges =
+              GStore._cloneWatchListChanges(nowWatch);
+          if (GStore._isWatchValuesUpdates(
+            _lastWatch,
+            _lastWatchChanges,
+            nowWatch,
+            nowWatchChanges,
+          )) {
             widget.onChange?.call(context);
-            _lastWatch = GStore._cloneWatchList(nowWatch);
+            _lastWatch = nowWatch;
+            _lastWatchChanges = nowWatchChanges;
             // check mounted because onChange can unmount
             if (mounted && widget.builder != null) setState(() {});
           }

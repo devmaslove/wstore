@@ -9,7 +9,7 @@ class ClientPageStore extends WStore {
         keyName: 'clientsCount',
       );
 
-  List<Client> get clients => computedFromStore(
+  ClientsArray get clients => computedFromStore(
         store: ClientsStore(),
         getValue: (ClientsStore store) => store.arrClients,
         keyName: 'clients',
@@ -52,7 +52,7 @@ class ClientPage extends WStoreWidget<ClientPageStore> {
       body: WStoreValueBuilder(
         store: store,
         watch: (ClientPageStore store) => store.clients,
-        builder: (context, List<Client> clients) {
+        builder: (context, ClientsArray clients) {
           return ListView.builder(
             itemCount: clients.length + 1,
             itemBuilder: (BuildContext context, int index) {

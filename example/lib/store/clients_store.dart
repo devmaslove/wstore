@@ -12,6 +12,55 @@ class Client {
   });
 }
 
+class ClientsArray with GStoreChangeObjectMixin {
+  final List<Client> _list = [];
+
+  ClientsArray();
+
+  void add(Client client) {
+    final itemIndex = _list.indexWhere((item) => item.id == client.id);
+    if (itemIndex != -1) {
+      _list.removeAt(itemIndex);
+      _list.insert(itemIndex, client);
+    } else {
+      _list.add(client);
+    }
+    incrementObjectChangeCount();
+  }
+
+  void remove(Client client) {
+    if (_list.remove(client)) {
+      incrementObjectChangeCount();
+    }
+  }
+
+  void removeById(int id) {
+    final oldLength = _list.length;
+    _list.removeWhere((item) => item.id == id);
+    if (oldLength != _list.length) {
+      incrementObjectChangeCount();
+    }
+  }
+
+  Client? getById(int id) {
+    final index = _list.indexWhere((item) => item.id == id);
+    if (index == -1) return null;
+    return _list[index];
+  }
+
+  int getNextId() {
+    final maxId = _list.fold<int>(
+      0,
+      (maxId, client) => client.id > maxId ? client.id : maxId,
+    );
+    return maxId + 1;
+  }
+
+  int get length => _list.length;
+
+  operator [](int index) => _list[index];
+}
+
 class ClientsStore extends GStore {
   static ClientsStore? _instance;
 
@@ -56,57 +105,35 @@ class ClientsStore extends GStore {
     return firstNames[_random.nextInt(firstNames.length)];
   }
 
-  List<Client> arrClients = [];
-
-
-  void setItems(final List<Client> items) {
-    setStore(() {
-      arrClients = [...items];
-    });
-  }
+  final ClientsArray arrClients = ClientsArray();
 
   Client addItem({
     required final String name,
   }) {
-    final maxId = arrClients.fold<int>(
-      0,
-          (maxId, client) => client.id > maxId ? client.id : maxId,
-    );
+    final nextId = arrClients.getNextId();
     final newClient = Client(
-      id: maxId + 1,
+      id: nextId,
       name: name,
     );
-    addItemOrReplaceById(newClient);
+    setStore(() {
+      arrClients.add(newClient);
+    });
     return newClient;
   }
 
-  void addItemOrReplaceById(final Client newItem) {
-    final items = [...arrClients];
-    final itemIndex = items.indexWhere((item) => item.id == newItem.id);
-    if (itemIndex != -1) {
-      items.removeAt(itemIndex);
-      items.insert(itemIndex, newItem);
-    } else {
-      items.add(newItem);
-    }
-    setItems(items);
-  }
-
   void removeFromItemsById(final int id) {
-    final items = [...arrClients];
-    items.removeWhere((item) => item.id == id);
-    setItems(items);
+    setStore(() {
+      arrClients.removeById(id);
+    });
   }
 
   void removeItem(final Client item) {
-    final items = [...arrClients];
-    items.remove(item);
-    setItems(items);
+    setStore(() {
+      arrClients.remove(item);
+    });
   }
 
   Client? getItemById(final int id) {
-    final index = arrClients.indexWhere((item) => item.id == id);
-    if (index == -1) return null;
-    return arrClients[index];
+    return arrClients.getById(id);
   }
 }
