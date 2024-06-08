@@ -1,6 +1,6 @@
 name: wstore
 description: A state management library that helps add reactivity to widgets
-version: 1.0.3
+version: 1.0.4
 repository: https://github.com/devmaslove/wstore
 
 environment:
