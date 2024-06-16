@@ -105,7 +105,11 @@ class ClientsStore extends GStore {
     return firstNames[_random.nextInt(firstNames.length)];
   }
 
+  // data
+
   final ClientsArray arrClients = ClientsArray();
+
+  // methods
 
   Client addItem({
     required final String name,
@@ -131,9 +135,5 @@ class ClientsStore extends GStore {
     setStore(() {
       arrClients.remove(item);
     });
-  }
-
-  Client? getItemById(final int id) {
-    return arrClients.getById(id);
   }
 }
