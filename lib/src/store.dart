@@ -108,10 +108,13 @@ class GStore {
       for (final key in removedKeys) {
         computedWatchList.remove(key);
       }
-      clear();
+      _computedWatchList.clear();
       _computedWatchList.addAll(computedWatchList);
+      _computedWatchListChanges.clear();
       _computedWatchListChanges.addAll(computedWatchListChanges);
+      _computedValues.clear();
       _computedValues.addAll(computedValues);
+      _computedWatchFunc.clear();
       _computedWatchFunc.addAll(computedWatchFunc);
       // run again to check if nested composed has changed
       _checkChangeComputed();
