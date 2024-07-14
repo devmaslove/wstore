@@ -22,3 +22,7 @@
 ## 1.0.4
 
 * Added GStoreChangeObjectMixin
+
+## 1.0.4
+
+* fix computedFromStore - getValue function is called several times
