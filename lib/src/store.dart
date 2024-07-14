@@ -274,14 +274,33 @@ class WStore extends GStore {
     final List<String> setStoreNames = const [],
     void Function(Object, StackTrace)? onError,
   }) {
-    return computedConverter(
-      stream: store._streamWatchers,
-      getValue: (_) => getValue(store),
-      initialValue: getValue(store),
+    if (_convertedValues.containsKey(keyName)) {
+      return _convertedValues[keyName];
+    }
+    final initialValue = getValue(store);
+    V oldValue = initialValue;
+    int? oldChangeCount = initialValue is GStoreChangeObjectMixin
+        ? initialValue.objectChangeCount
+        : null;
+    _convertedValues[keyName] = initialValue;
+    Stream<bool> streamWatch = store._streamWatchers;
+    _convertedSubscriptions[keyName] = streamWatch.listen(
+      (_) {
+        final newValue = getValue(store);
+        final int? newChangeCount = newValue is GStoreChangeObjectMixin
+            ? newValue.objectChangeCount
+            : null;
+        if (!GStore._isValuesEquals(newValue, oldValue) ||
+            oldChangeCount != newChangeCount) {
+          oldValue = newValue;
+          oldChangeCount = newChangeCount;
+          setStore(() => _convertedValues[keyName] = newValue);
+          notifyChangeNamed(setStoreNames);
+        }
+      },
       onError: onError,
-      setStoreNames: setStoreNames,
-      keyName: keyName,
     );
+    return initialValue;
   }
 
   /// Convert data from stream and cache result value
