@@ -39,7 +39,7 @@ class DebouncePage extends WStoreWidget<DebouncePageStore> {
                 store: store,
                 watch: (store) => store.searchText,
                 builder: (context, text) {
-                  return Text(text);
+                  return TextSearch(text);
                 },
               ),
               const SizedBox(height: 20),
@@ -118,6 +118,48 @@ class _SearchField extends StatelessWidget {
         ),
         hintText: 'Search',
       ),
+    );
+  }
+}
+
+class TextSearchStore extends WStore {
+  String searchText = '';
+
+  void setTextSearch(final String text) {
+    setStore(() => searchText = text);
+  }
+
+  @override
+  TextSearch get widget => super.widget as TextSearch;
+}
+
+class TextSearch extends WStoreWidget<TextSearchStore> {
+  final String text;
+
+  const TextSearch(
+    this.text, {
+    super.key,
+  });
+
+  // example of how to update the store when the widget params changes
+  @override
+  void didUpdateWidget(TextSearch oldWidget, store) {
+    if (oldWidget.text != text) {
+      store.setTextSearch(text);
+    }
+  }
+
+  @override
+  TextSearchStore createWStore() => TextSearchStore()..setTextSearch(text);
+
+  @override
+  Widget build(BuildContext context, TextSearchStore store) {
+    return WStoreValueBuilder<TextSearchStore, String>(
+      store: store,
+      watch: (store) => store.searchText,
+      builder: (context, text) {
+        return  Text(text);
+      },
     );
   }
 }

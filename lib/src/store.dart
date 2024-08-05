@@ -7,6 +7,7 @@ import 'inherited.dart';
 
 mixin GStoreChangeObjectMixin {
   int _objectChangeCount = 0;
+
   void incrementObjectChangeCount() {
     _objectChangeCount = _objectChangeCount + 1;
   }
@@ -750,6 +751,10 @@ abstract class WStoreWidget<T extends WStore> extends StatefulWidget {
   @protected
   void initWStore(T store) {}
 
+  /// Called whenever the widget configuration changes
+  @protected
+  void didUpdateWidget(covariant WStoreWidget<T> oldWidget, T store) {}
+
   @override
   State<WStoreWidget<T>> createState() => _WStoreWidgetState<T>();
 
@@ -781,6 +786,13 @@ class _WStoreWidgetState<T extends WStore> extends State<WStoreWidget<T>> {
   void dispose() {
     store.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(WStoreWidget<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    store._widget = widget;
+    widget.didUpdateWidget(oldWidget, store);
   }
 
   @override
