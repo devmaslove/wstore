@@ -780,6 +780,27 @@ Watch списки сравнивают сложные объекты по сс�
 Каждый раз при изменении объекта вызывайте у него метод `incrementObjectChangeCount()`, чтобы
 увеличить счетчик изменений. Посмотреть текущее значение счетчика можно в `objectChangeCount`.
 
+```dart
+class ClientsArray with GStoreChangeObjectMixin {
+  final List<Client> _list = [];
+
+  ClientsArray();
+
+  void add(Client client) {
+    _list.add(client);
+    incrementObjectChangeCount();
+  }
+
+  void remove(Client client) {
+    if (_list.remove(client)) {
+      incrementObjectChangeCount();
+    }
+  }
+  
+  operator [](int index) => _list[index];
+}
+```
+
 ## Сниппеты кода
 
 Чтобы было удобнее создавать виджеты со сторой рекомендую добавить сниппеты кода:
